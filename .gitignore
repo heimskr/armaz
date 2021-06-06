@@ -2,3 +2,5 @@
 *.so
 /armaz
 .dep
+*.img
+*.elf
