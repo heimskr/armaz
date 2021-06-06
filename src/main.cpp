@@ -13,8 +13,23 @@ void main(uint64_t dtb_ptr32, uint64_t x1, uint64_t x2, uint64_t x3) {
 	UART::init();
 	printf("Hello, world!\n");
 
+	uintptr_t n = 0;
+
 	for (;;) {
-		UART::put(UART::get());
+		unsigned char ch = UART::get();
+		if ('0' <= ch && ch <= '9') {
+			n = n * 16 + ch - '0';
+			UART::put(ch);
+		} else if ('a' <= ch && ch <= 'f') {
+			n = n * 16 + 0xa + ch - 'a';
+			UART::put(ch);
+		} else if (ch == '\r') {
+			printf("\n*0x%llx = ", n);
+			printf("0x%016llx / 0x%02x\n", *(uint64_t *) n, *(uint8_t *) n);
+			n = 0;
+		} else {
+			UART::put(ch);
+		}
 		asm volatile("wfe");
 	}
 }
