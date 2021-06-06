@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 
+#include "ARM.h"
 #include "MMIO.h"
 #include "RPi.h"
 #include "UART.h"
@@ -17,11 +18,11 @@ namespace Armaz::UART {
 
 		// Disable pull up/down for all GPIO pins & delay for 150 cycles.
 		MMIO::write(GPPUD, 0);
-		RPi::delay(150);
+		ARM::delay(150);
 
 		// Disable pull up/down for pin 14,15 & delay for 150 cycles.
 		MMIO::write(GPPUDCLK0, (1 << 14) | (1 << 15));
-		RPi::delay(150);
+		ARM::delay(150);
 
 		// Write 0 to GPPUDCLK0 to make it take effect.
 		MMIO::write(GPPUDCLK0, 0);
