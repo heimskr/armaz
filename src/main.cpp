@@ -6,10 +6,7 @@
 using namespace Armaz;
 
 void main(uint64_t dtb_ptr32, uint64_t x1, uint64_t x2, uint64_t x3) {
-	(void) dtb_ptr32;
-	(void) x1;
-	(void) x2;
-	(void) x3;
+	(void) dtb_ptr32; (void) x1; (void) x2; (void) x3;
 
 	UART::init();
 	printf("Hello, world!\n");
@@ -29,6 +26,9 @@ void main(uint64_t dtb_ptr32, uint64_t x1, uint64_t x2, uint64_t x3) {
 			printf("\n*0x%llx = ", n);
 			printf("0x%016llx / 0x%02x\n", *(uint64_t *) n, *(uint8_t *) n);
 			n = 0;
+		} else if (ch == '!') {
+			ARM::setMMU(!ARM::getMMU());
+			printf("Virtual memory is now %s.\n", ARM::getMMU()? "enabled" : "disabled");
 		} else {
 			UART::put(ch);
 		}
