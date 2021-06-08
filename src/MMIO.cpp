@@ -1,5 +1,6 @@
 // Based on code from https://wiki.osdev.org/Raspberry_Pi_Bare_Bones
 
+#include "ARM.h"
 #include "MMIO.h"
 #include "RPi.h"
 

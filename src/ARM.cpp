@@ -1,4 +1,6 @@
 #include "ARM.h"
+#include "MMIO.h"
+#include "printf.h"
 
 namespace Armaz::ARM {
 	int getEL() {
@@ -28,6 +30,15 @@ namespace Armaz::ARM {
 
 	void setSctlr(uint32_t value) {
 		asm volatile("msr sctlr_el1, %0" :: "r"(value));
+	}
+
+	void invalidEntry(uint64_t n) {
+		printf("Invalid entry: %llu\n", n);
+	}
+
+	void handleIRQ() {
+		unsigned irq = MMIO::read(MMIO::IRQ_PENDING_1);
+		printf("IRQ: %u\n", irq);
 	}
 
 	void delay(int32_t count) {
