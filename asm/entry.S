@@ -7,7 +7,7 @@ kernel_entry
 mov	x0, #\type
 mrs	x1, esr_el1
 mrs	x2, elr_el1
-bl _ZN5Armaz3ARM12invalidEntryEm
+bl _ZN5Armaz3ARM12invalidEntryEimm
 b  err_hang
 .endm
 
@@ -73,6 +73,10 @@ _ZN5Armaz3ARM11disableIRQsEv:
 	msr daifset, #2
 	ret
 
+
+
+
+/*
 // Exception vectors.
 .align 11
 .globl vectors 
@@ -150,3 +154,101 @@ el1_irq:
 .globl err_hang
 err_hang:
 	b err_hang
+//*/
+
+
+irq:
+	stp x29, x30, [sp, #-16]!
+	stp x18, x19, [sp, #-16]!
+	stp x16, x17, [sp, #-16]!
+	stp x14, x15, [sp, #-16]!
+	stp x12, x13, [sp, #-16]!
+	stp x10, x11, [sp, #-16]!
+	stp x8, x9, [sp, #-16]!
+	stp x6, x7, [sp, #-16]!
+	stp x4, x5, [sp, #-16]!
+	stp x2, x3, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+
+	bl    _ZN5Armaz3ARM9handleIRQEv
+
+	ldp x0, x1, [sp], #16
+	ldp x2, x3, [sp], #16
+	ldp x4, x5, [sp], #16
+	ldp x6, x7, [sp], #16
+	ldp x8, x9, [sp], #16
+	ldp x10, x11, [sp], #16
+	ldp x12, x13, [sp], #16
+	ldp x14, x15, [sp], #16
+	ldp x16, x17, [sp], #16
+	ldp x18, x19, [sp], #16
+	ldp x29, x30, [sp], #16
+    eret
+
+fiq:
+	stp x29, x30, [sp, #-16]!
+	stp x18, x19, [sp, #-16]!
+	stp x16, x17, [sp, #-16]!
+	stp x14, x15, [sp, #-16]!
+	stp x12, x13, [sp, #-16]!
+	stp x10, x11, [sp, #-16]!
+	stp x8, x9, [sp, #-16]!
+	stp x6, x7, [sp, #-16]!
+	stp x4, x5, [sp, #-16]!
+	stp x2, x3, [sp, #-16]!
+	stp x0, x1, [sp, #-16]!
+
+	bl    _ZN5Armaz3ARM9handleFIQEv
+
+	ldp x0, x1, [sp], #16
+	ldp x2, x3, [sp], #16
+	ldp x4, x5, [sp], #16
+	ldp x6, x7, [sp], #16
+	ldp x8, x9, [sp], #16
+	ldp x10, x11, [sp], #16
+	ldp x12, x13, [sp], #16
+	ldp x14, x15, [sp], #16
+	ldp x16, x17, [sp], #16
+	ldp x18, x19, [sp], #16
+	ldp x29, x30, [sp], #16
+	eret
+
+.balign 4096
+.globl vectors
+vectors:
+.balign 128
+    b hang
+.balign 128
+    b irq
+.balign 128
+    b fiq
+.balign 128
+    b hang
+.balign 128
+    b hang
+.balign 128
+    b irq
+.balign 128
+    b fiq
+.balign 128
+    b hang
+.balign 128
+    b hang
+.balign 128
+    b irq
+.balign 128
+    b fiq
+.balign 128
+    b hang
+.balign 128
+    b hang
+.balign 128
+    b irq
+.balign 128
+    b fiq
+.balign 128
+    b hang
+
+hang:
+	1: wfe
+	b 1b

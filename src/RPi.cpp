@@ -3,7 +3,7 @@
 namespace Armaz::RPi {
 	int getModel() {
 		uint32_t reg;
-		asm volatile("mrs %0, midr_el1" : "=r"(reg));
+		asm volatile("mrs %x0, midr_el1" : "=r"(reg));
 		switch ((reg >> 4) & 0xfff) {
 			case 0xb76: return 1;
 			case 0xc07: return 2;

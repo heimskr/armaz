@@ -11,10 +11,12 @@ namespace Armaz::ARM {
 	bool getMMU();
 	void setMMU(bool enabled);
 	void initVector();
+	void initGIC();
 	void enableIRQs();
 	void disableIRQs();
-	void invalidEntry(uint64_t);
+	void invalidEntry(int type, unsigned long esr, unsigned long address);
 	void handleIRQ();
+	void handleFIQ();
 	void delay(int32_t count);
 
 	constexpr uint32_t SCTLR_MMU_ENABLED = 1;

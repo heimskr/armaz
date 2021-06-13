@@ -5,13 +5,13 @@
 namespace Armaz::ARM {
 	int getEL() {
 		int reg;
-		asm volatile("mrs %0, CurrentEL" : "=r"(reg));
+		asm volatile("mrs %x0, CurrentEL" : "=r"(reg));
 		return reg >> 2;
 	}
 
 	uint32_t getSctlr() {
 		uint32_t reg;
-		asm volatile("mrs %0, sctlr_el1" : "=r"(reg));
+		asm volatile("mrs %x0, sctlr_el1" : "=r"(reg));
 		return reg;
 	}
 
@@ -29,16 +29,21 @@ namespace Armaz::ARM {
 	}
 
 	void setSctlr(uint32_t value) {
-		asm volatile("msr sctlr_el1, %0" :: "r"(value));
+		asm volatile("msr sctlr_el1, %x0" :: "r"(value));
 	}
 
-	void invalidEntry(uint64_t n) {
-		printf("Invalid entry: %llu\n", n);
+	void invalidEntry(int type, unsigned long esr, unsigned long address) {
+		printf("Invalid entry: %d, %lx, %lx\n", type, esr, address);
 	}
 
 	void handleIRQ() {
 		unsigned irq = MMIO::read(MMIO::IRQ_PENDING_1);
 		printf("IRQ: %u\n", irq);
+	}
+
+	void handleFIQ() {
+		// unsigned irq = MMIO::read(MMIO::IRQ_PENDING_1);
+		printf("FIQ\n");
 	}
 
 	void delay(int32_t count) {
