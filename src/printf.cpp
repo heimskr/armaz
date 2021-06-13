@@ -805,6 +805,6 @@ extern "C" {
 	}
 
 	void _putchar(char ch) {
-		Armaz::UART::put((unsigned char) ch);
+		Armaz::UART::write((unsigned char) ch);
 	}
 }

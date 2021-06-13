@@ -4,46 +4,40 @@
 
 namespace Armaz::UART {
 	void init();
-	void put(unsigned char);
-	void put(const char *);
-	unsigned char get();
+	void write(unsigned char);
+	void write(const char *);
+	unsigned char read();
+	bool isOutputQueueEmpty();
+	bool isReadByteReady();
+	bool isWriteByteReady();
+	void loadOutputFifo();
+	void drain();
+	void update();
 
-	// The offsets for each register.
 	constexpr uintptr_t GPIO_BASE = 0x200000;
+	constexpr uintptr_t GPFSEL0   = GPIO_BASE;
+	constexpr uintptr_t GPSET0    = GPIO_BASE + 0x1c;
+	constexpr uintptr_t GPCLR0    = GPIO_BASE + 0x28;
+	constexpr uintptr_t GPPUPPDN0 = GPIO_BASE + 0xe4;
 
-	// Controls actuation of pull up/down to all GPIO pins.
-	constexpr uintptr_t GPPUD = (GPIO_BASE + 0x94);
+	constexpr uintptr_t AUX_BASE        = 0x215000;
+	constexpr uintptr_t AUX_IRQ         = AUX_BASE;
+	constexpr uintptr_t AUX_ENABLES     = AUX_BASE + 0x04;
+	constexpr uintptr_t AUX_MU_IO_REG   = AUX_BASE + 0x40;
+	constexpr uintptr_t AUX_MU_IER_REG  = AUX_BASE + 0x44;
+	constexpr uintptr_t AUX_MU_IIR_REG  = AUX_BASE + 0x48;
+	constexpr uintptr_t AUX_MU_LCR_REG  = AUX_BASE + 0x4c;
+	constexpr uintptr_t AUX_MU_MCR_REG  = AUX_BASE + 0x50;
+	constexpr uintptr_t AUX_MU_LSR_REG  = AUX_BASE + 0x54;
+	constexpr uintptr_t AUX_MU_MSR_REG  = AUX_BASE + 0x58;
+	constexpr uintptr_t AUX_MU_SCRATCH  = AUX_BASE + 0x5c;
+	constexpr uintptr_t AUX_MU_CNTL_REG = AUX_BASE + 0x60;
+	constexpr uintptr_t AUX_MU_STAT_REG = AUX_BASE + 0x64;
+	constexpr uintptr_t AUX_MU_BAUD_REG = AUX_BASE + 0x68;
+	constexpr uintptr_t AUX_UART_CLOCK  = 500000000;
+	constexpr uintptr_t UART_MAX_QUEUE  = 0x4000;
 
-	// Controls actuation of pull up/down for specific GPIO pin.
-	constexpr uintptr_t GPPUDCLK0 = (GPIO_BASE + 0x98);
-
-	// The base address for UART.
-	// 0xfe201000 for raspi4, 0x3f201000 raspi2 and raspi3, and 0x20201000 for raspi1.
-	constexpr uintptr_t UART0_BASE = GPIO_BASE + 0x1000;
-
-	// The offsets for each register for the UART.
-	constexpr uintptr_t UART0_DR     = UART0_BASE + 0x00;
-	constexpr uintptr_t UART0_RSRECR = UART0_BASE + 0x04;
-	constexpr uintptr_t UART0_FR     = UART0_BASE + 0x18;
-	constexpr uintptr_t UART0_ILPR   = UART0_BASE + 0x20;
-	constexpr uintptr_t UART0_IBRD   = UART0_BASE + 0x24;
-	constexpr uintptr_t UART0_FBRD   = UART0_BASE + 0x28;
-	constexpr uintptr_t UART0_LCRH   = UART0_BASE + 0x2c;
-	constexpr uintptr_t UART0_CR     = UART0_BASE + 0x30;
-	constexpr uintptr_t UART0_IFLS   = UART0_BASE + 0x34;
-	constexpr uintptr_t UART0_IMSC   = UART0_BASE + 0x38;
-	constexpr uintptr_t UART0_RIS    = UART0_BASE + 0x3c;
-	constexpr uintptr_t UART0_MIS    = UART0_BASE + 0x40;
-	constexpr uintptr_t UART0_ICR    = UART0_BASE + 0x44;
-	constexpr uintptr_t UART0_DMACR  = UART0_BASE + 0x48;
-	constexpr uintptr_t UART0_ITCR   = UART0_BASE + 0x80;
-	constexpr uintptr_t UART0_ITIP   = UART0_BASE + 0x84;
-	constexpr uintptr_t UART0_ITOP   = UART0_BASE + 0x88;
-	constexpr uintptr_t UART0_TDR    = UART0_BASE + 0x8c;
-
-	// The offsets for Mailbox registers.
-	constexpr uint16_t MBOX_BASE   = 0xb880;
-	constexpr uint16_t MBOX_READ   = MBOX_BASE + 0x00;
-	constexpr uint16_t MBOX_STATUS = MBOX_BASE + 0x18;
-	constexpr uint16_t MBOX_WRITE  = MBOX_BASE + 0x20;
+	constexpr int auxMuBaud(int baud) {
+		return AUX_UART_CLOCK / (baud * 8) - 1;
+	}
 }

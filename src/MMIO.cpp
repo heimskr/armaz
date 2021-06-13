@@ -11,13 +11,14 @@ namespace Armaz::MMIO {
 	void init() {
 		if (!initialized) {
 			initialized = true;
-			switch (RPi::getModel()) {
-				case 1:  base = 0x20000000; break;
-				case 2:  base = 0x3f000000; break;
-				case 3:  base = 0x3f000000; break;
-				case 4:  base = 0xfe000000; break;
-				default: base = 0x20000000; break;
-			}
+			base = 0xfe000000;
+			// switch (RPi::getModel()) {
+			// 	case 1:  base = 0x20000000; break;
+			// 	case 2:  base = 0x3f000000; break;
+			// 	case 3:  base = 0x3f000000; break;
+			// 	case 4:  base = 0xfe000000; break;
+			// 	default: base = 0x20000000; break;
+			// }
 		}
 	}
 
