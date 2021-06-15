@@ -17,8 +17,8 @@ namespace Armaz::UART {
 		MMIO::write(AUX_MU_CNTL_REG, 0);
 		MMIO::write(AUX_MU_LCR_REG, 3); // 8 bits
 		MMIO::write(AUX_MU_MCR_REG, 0);
-		MMIO::write(AUX_MU_IER_REG, 0);
-		MMIO::write(AUX_MU_IIR_REG, 0xc6); // Disable interrupts
+		MMIO::write(AUX_MU_IER_REG, 0); // 5 to enable RX interrupts, 0 to disable?
+		// MMIO::write(AUX_MU_IIR_REG, 0xc6); // Disable interrupts
 		MMIO::write(AUX_MU_BAUD_REG, auxMuBaud(115200));
 		GPIO::useAsAlt5(14);
 		GPIO::useAsAlt5(15);

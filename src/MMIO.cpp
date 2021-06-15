@@ -11,14 +11,13 @@ namespace Armaz::MMIO {
 	void init() {
 		if (!initialized) {
 			initialized = true;
-			base = 0xfe000000;
-			// switch (RPi::getModel()) {
-			// 	case 1:  base = 0x20000000; break;
-			// 	case 2:  base = 0x3f000000; break;
-			// 	case 3:  base = 0x3f000000; break;
-			// 	case 4:  base = 0xfe000000; break;
-			// 	default: base = 0x20000000; break;
-			// }
+			switch (RPi::getModel()) {
+				case 1:  base = 0x20000000; break;
+				case 2:  base = 0x3f000000; break;
+				case 3:  base = 0x3f000000; break;
+				case 4:  base = 0xfe000000; break;
+				default: base = 0x20000000; break;
+			}
 		}
 	}
 
@@ -29,4 +28,8 @@ namespace Armaz::MMIO {
 	uint32_t read(uintptr_t reg) {
 		return *(volatile uint32_t *) (base + reg);
 	}
+}
+
+void write32(uintptr_t addr, uint32_t data) {
+	*(volatile uint32_t *) addr = data;
 }

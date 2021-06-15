@@ -1,9 +1,11 @@
 #pragma once
 
+// Credit: https://github.com/rsta2/circle
+
 #include <stdint.h>
 
 namespace Armaz {
-	struct IRQ2711 {
+	struct IRQs {
 		volatile uint32_t irq0Pending0;
 		volatile uint32_t irq0Pending1;
 		volatile uint32_t irq0Pending2;
@@ -17,23 +19,43 @@ namespace Armaz {
 		volatile uint32_t irq0Disable2;
 	};
 
-	struct IRQ2837 {
-		volatile uint32_t irq0Pending0;
-		volatile uint32_t irq0Pending1;
-		volatile uint32_t irq0Pending2;
-		volatile uint32_t fiq_control;
-		volatile uint32_t irq0Enable1;
-		volatile uint32_t irq0Enable2;
-		volatile uint32_t irq0Enable0;
-		volatile uint32_t res;
-		volatile uint32_t irq0Disable1;
-		volatile uint32_t irq0Disable2;
-		volatile uint32_t irq0Disable0;
+	struct VectorTable {
+		struct Entry {
+			volatile uint32_t branch;
+			volatile uint32_t padding[31];
+		};
+
+		volatile Entry entries[16];
 	};
 
-#if RPI_VERSION == 4
-	using IRQs = IRQ2711;
-#else
-	using IRQs = IRQ2837;
-#endif
+	struct AbortFrame {
+		uint64_t esr_el1;
+		uint64_t spsr_el1;
+		uint64_t x30; // lr
+		uint64_t elr_el1;
+		uint64_t sp_el0;
+		uint64_t sp_el1;
+		uint64_t far_el1;
+		uint64_t unused;
+	} __attribute__((packed));
+
+	namespace Interrupts {
+		void SMCStub();
+		void UnexpectedStub();
+		void SynchronousStub();
+		void SErrorStub();
+		void SecureMonitorHandler(uint32_t function, uint32_t param);
+		void ExceptionHandler(uint64_t exception, AbortFrame *frame);
+		void InterruptHandler();
+
+		void init();
+		inline void enableIRQs() { asm volatile("msr DAIFClr, #2"); }
+		inline void enableFIQs() { asm volatile("msr DAIFClr, #1"); }
+		inline void disableIRQs() { asm volatile("msr DAIFSet, #2"); }
+		inline void disableFIQs() { asm volatile("msr DAIFSet, #1"); }
+	}
 }
+
+extern Armaz::VectorTable vectors;
+
+extern uintptr_t IRQReturnAddress;

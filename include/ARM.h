@@ -17,6 +17,7 @@ namespace Armaz::ARM {
 	void invalidEntry(int type, unsigned long esr, unsigned long address);
 	void handleIRQ();
 	void handleFIQ();
+	void handleInvalid();
 	void delay(int32_t count);
 
 	constexpr uint32_t SCTLR_MMU_ENABLED = 1;
@@ -25,9 +26,4 @@ namespace Armaz::ARM {
 	constexpr uint32_t SYSTEM_TIMER_IRQ_1 = 1 << 1;
 	constexpr uint32_t SYSTEM_TIMER_IRQ_2 = 1 << 2;
 	constexpr uint32_t SYSTEM_TIMER_IRQ_3 = 1 << 3;
-
-	// template <int Mask>
-	// void enableIRQs() {
-	// 	asm volatile("msr daifclr, #%0" :: "I"(Mask));
-	// }
 }
