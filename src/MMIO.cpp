@@ -2,6 +2,7 @@
 
 #include "ARM.h"
 #include "MMIO.h"
+#include "printf.h"
 #include "RPi.h"
 
 namespace Armaz::MMIO {
@@ -31,5 +32,6 @@ namespace Armaz::MMIO {
 }
 
 void write32(uintptr_t addr, uint32_t data) {
+	// printf("*0x%llx = 0x%x\n", addr, data);
 	*(volatile uint32_t *) addr = data;
 }

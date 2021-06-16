@@ -17,7 +17,13 @@ SECTIONS {
 	}
 	. = ALIGN(4096);
 	__rodata_end = .;
- 
+
+	__init_start = .;
+	.init_array : {
+		KEEP(*(.init_array*))
+	}
+	__init_end = .;
+
 	__data_start = .;
 	.data : {
 		*(.data)

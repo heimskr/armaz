@@ -1,5 +1,6 @@
 #include "ARM.h"
 #include "assert.h"
+#include "BCM2836.h"
 #include "GIC.h"
 #include "GIC400.h"
 #include "IRQ.h"
@@ -15,7 +16,14 @@ extern "C" void main() {
 	MMIO::init();
 	UART::init();
 
-	ARM::initVector();
+	// ARM::initVector();
+
+	write32(ARM_LOCAL_PRESCALER, 39768216u);
+
+	extern void (*__init_start) (void);
+	extern void (*__init_end) (void);
+	for (void (**func)(void) = &__init_start; func < &__init_end; ++func)
+		(**func)();
 
 	// IRQs *irqs = (IRQs *) (MMIO::base + MMIO::IRQ_BASIC_PENDING);
 
@@ -80,5 +88,10 @@ extern "C" void main() {
 		// asm volatile("wfe");
 	}
 	//*/
+	for (;;) asm volatile("wfi");
+}
+
+extern "C" void main_secondary() {
+	printf("main_secondary unimplemented!\n");
 	for (;;) asm volatile("wfi");
 }

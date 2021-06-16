@@ -61,9 +61,13 @@ namespace Armaz::Interrupts {
 	void *params[72];
 
 	void init() {
-		for (int i = 0; i < 16; ++i)
-			vectors.entries[i].branch = AARCH64_OPCODE_BRANCH(AARCH64_DISTANCE(vectors.entries[i].branch,
+		VectorTable *vecs = (VectorTable *) 0x00070000;
+
+		for (int i = 0; i < 16; ++i) {
+			// printf("vectors.entries[%d].branch = 0x%llx\n", i, vectors.entries[i].branch);
+			vecs->entries[i].branch = AARCH64_OPCODE_BRANCH(AARCH64_DISTANCE(vecs->entries[i].branch,
 				i == 8? SMCStub : UnexpectedStub));
+		}
 
 		syncDataAndInstructionCache();
 
