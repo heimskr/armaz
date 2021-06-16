@@ -109,14 +109,11 @@ namespace Armaz::Interrupts {
 		assert(!handlers[irq]);
 		handlers[irq] = handler;
 		params[irq] = param;
-
-		printf("Connect %u\n", irq);
 		enable(irq);
 	}
 
 	void enable(unsigned irq) {
 		assert(irq < IRQ_LINES);
-		printf("Enable %u\n", irq);
 		write32(GICD_ISENABLER0 + 4 * (irq / 32), 1 << (irq % 32));
 	}
 

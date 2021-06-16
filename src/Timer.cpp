@@ -29,7 +29,6 @@ namespace Armaz::Timers {
 		Interrupts::connect(ARM_IRQLOCAL0_CNTPNS, handler, this);
 		uint64_t cntfrq;
 		asm volatile("mrs %0, CNTFRQ_EL0" : "=r"(cntfrq));
-		printf("cntfrq = %llu\n", cntfrq);
 		assert(cntfrq % HZ == 0);
 		clockTicksPerHzTick = cntfrq / HZ;
 

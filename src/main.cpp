@@ -31,7 +31,6 @@ extern "C" void main() {
 	Timers::timer.init();
 
 	printf("Hello, world!\n");
-	printf("Execution level: %d\n", ARM::getEL());
 
 	/*
 	uintptr_t addr = 0;
