@@ -57,6 +57,10 @@ namespace Armaz {
 		void init();
 		void connect(unsigned irq, Handler, void *);
 		void enable(unsigned irq);
+		void disconnect(unsigned irq);
+		void disable(unsigned irq);
+
+		bool callIRQHandler(unsigned irq);
 
 		inline void enableIRQs() { asm volatile("msr DAIFClr, #2"); }
 		inline void enableFIQs() { asm volatile("msr DAIFClr, #1"); }

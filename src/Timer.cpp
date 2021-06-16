@@ -23,10 +23,13 @@ namespace Armaz::Timers {
 	Timer timer;
 
 	void Timer::init(bool /* calibrate */) {
-		printf("Initializing timer.\n");
-		Interrupts::connect(ARM_IRQLOCAL0_CNTPNS, handler, nullptr);
+		if (connected)
+			return;
+		connected = true;
+		Interrupts::connect(ARM_IRQLOCAL0_CNTPNS, handler, this);
 		uint64_t cntfrq;
 		asm volatile("mrs %0, CNTFRQ_EL0" : "=r"(cntfrq));
+		printf("cntfrq = %llu\n", cntfrq);
 		assert(cntfrq % HZ == 0);
 		clockTicksPerHzTick = cntfrq / HZ;
 
@@ -34,18 +37,25 @@ namespace Armaz::Timers {
 		asm volatile("mrs %0, CNTPCT_EL0" : "=r"(cntpct));
 		asm volatile("msr CNTP_CVAL_EL0, %0" :: "r"(cntpct + clockTicksPerHzTick));
 		asm volatile("msr CNTP_CTL_EL0, %0" :: "r"(1));
-		printf("cntfrq = %llu\n", cntfrq);
-		printf("cntpct = %llu\n", cntpct);
-		printf("cntpct + clockTicksPerHzTick = %llu\n", cntpct + clockTicksPerHzTick);
 	}
 
 	void Timer::handler() {
-		printf("Timer: 0x%llx\n", this);
+		static unsigned i = 0;
+		printf("Timer. %u\n", ++i);
+		uint64_t cval;
+		asm volatile("mrs %0, CNTP_CVAL_EL0" : "=r"(cval));
+		asm volatile("msr CNTP_CVAL_EL0, %0" :: "r"(cval + clockTicksPerHzTick));
 	}
 
 	void Timer::handler(void *param) {
-		printf("Timer.\n");
 		assert(param);
 		((Timer *) param)->handler();
+	}
+
+	void Timer::disconnect() {
+		if (!connected)
+			return;
+		Interrupts::disconnect(ARM_IRQLOCAL0_CNTPNS);
+		connected = false;
 	}
 }

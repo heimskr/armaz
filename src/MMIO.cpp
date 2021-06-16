@@ -31,7 +31,10 @@ namespace Armaz::MMIO {
 	}
 }
 
+unsigned read32(uintptr_t addr) {
+	return *(volatile uint32_t *) addr;
+}
+
 void write32(uintptr_t addr, uint32_t data) {
-	// printf("*0x%llx = 0x%x\n", addr, data);
 	*(volatile uint32_t *) addr = data;
 }

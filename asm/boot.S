@@ -24,10 +24,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Config.h"
 #include "MemoryMap.h"
 #include "SysRegs.h"
-
-// #define ARM_ALLOW_MULTI_CORE
 
 .macro armv8_switch_to_el1_m, xreg1, xreg2
 	// Initialize Generic Timers

@@ -22,4 +22,5 @@ namespace Armaz::MMIO {
 	constexpr uintptr_t DISABLE_BASIC_IRQS = 0xb224;
 }
 
+unsigned read32(uintptr_t addr);
 void write32(uintptr_t addr, uint32_t data);

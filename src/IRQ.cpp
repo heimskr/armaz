@@ -3,6 +3,7 @@
 #include "assert.h"
 #include "BCM2711.h"
 #include "BCM2711int.h"
+#include "Config.h"
 #include "IRQ.h"
 #include "MMIO.h"
 #include "printf.h"
@@ -119,6 +120,31 @@ namespace Armaz::Interrupts {
 		write32(GICD_ISENABLER0 + 4 * (irq / 32), 1 << (irq % 32));
 	}
 
+	void disconnect(unsigned irq) {
+		assert(irq < IRQ_LINES);
+		assert(handlers[irq]);
+		disable(irq);
+		handlers[irq] = nullptr;
+		params[irq] = nullptr;
+	}
+
+	void disable(unsigned irq) {
+		assert(irq < IRQ_LINES);
+		write32(GICD_ICENABLER0 + 4 * (irq / 32), 1 << (irq % 32));
+	}
+
+	bool callIRQHandler(unsigned irq) {
+		assert(irq < IRQ_LINES);
+		if (handlers[irq]) {
+			(*handlers[irq])(params[irq]);
+			return true;
+		} else {
+			disconnect(irq);
+		}
+
+		return false;
+	}
+
 	void SecureMonitorHandler(uint32_t function, uint32_t param) {
 		printf("SecureMonitorHandler(%u, %u)\n", function, param);
 	}
@@ -128,6 +154,20 @@ namespace Armaz::Interrupts {
 	}
 
 	void InterruptHandler() {
-		printf("InterruptHandler()\n");
+		unsigned iar = read32(GICC_IAR);
+		unsigned irq = iar & GICC_IAR_INTERRUPT_ID__MASK;
+		if (irq < IRQ_LINES) {
+			if (15 < irq) {
+				callIRQHandler(irq);
+			}
+#ifdef ARM_ALLOW_MULTI_CORE
+			else {
+				// TODO
+			}
+#endif
+			write32(GICC_EOIR, iar);
+		} else {
+			assert(1020 <= irq);
+		}
 	}
 }

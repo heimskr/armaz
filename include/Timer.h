@@ -17,7 +17,9 @@
 #include <stdint.h>
 
 namespace Armaz::Timers {
-	constexpr unsigned HZ = 100;
+	/** When set to 1000, the timer seems to run at 18.5 Hz. This means that this value should be about 54 times the
+	 *  actual desired frequency. Probably has something to do with the clock's 54 MHz frequency. */
+	constexpr unsigned HZ = 540;
 
 	/** See the documentation for the ARM side timer (Section 14 of the BCM2835 Peripherals PDF) */
 	constexpr uintptr_t ARMTIMER_BASE = 0xb400;
@@ -40,6 +42,7 @@ namespace Armaz::Timers {
 	class Timer {
 		private:
 			unsigned clockTicksPerHzTick;
+			bool connected = false;
 			// void tuneMsDelay();
 			// volatile unsigned ticks;
 
@@ -48,6 +51,7 @@ namespace Armaz::Timers {
 			void init(bool calibrate = false);
 			void handler();
 			static void handler(void *);
+			void disconnect();
 	};
 
 	extern Timer timer;
