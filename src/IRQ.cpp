@@ -1,10 +1,12 @@
+// Credit: https://github.com/rsta2/circle
+
+#include "assert.h"
 #include "BCM2711.h"
 #include "BCM2711int.h"
 #include "IRQ.h"
 #include "MMIO.h"
 #include "printf.h"
-
-// Credit: https://github.com/rsta2/circle
+#include "Synchronize.h"
 
 #define AARCH64_OPCODE_BRANCH(distance) (0x14000000 | (distance))
 #define AARCH64_DISTANCE(from, to) ((uint32_t *) &(to) - (uint32_t *) &(from))
@@ -55,10 +57,15 @@
 	#define GICC_EOIR_CPUID__MASK		(3 << 10)
 
 namespace Armaz::Interrupts {
+	Handler handlers[72];
+	void *params[72];
+
 	void init() {
 		for (int i = 0; i < 16; ++i)
 			vectors.entries[i].branch = AARCH64_OPCODE_BRANCH(AARCH64_DISTANCE(vectors.entries[i].branch,
 				i == 8? SMCStub : UnexpectedStub));
+
+		syncDataAndInstructionCache();
 
 		// Initialize distributor
 
@@ -90,6 +97,22 @@ namespace Armaz::Interrupts {
 		write32(GICC_CTLR, GICC_CTLR_ENABLE);
 
 		enableIRQs();
+	}
+
+	void connect(unsigned irq, Handler handler, void *param) {
+		assert(irq < IRQ_LINES);
+		assert(!handlers[irq]);
+		handlers[irq] = handler;
+		params[irq] = param;
+
+		printf("Connect %u\n", irq);
+		enable(irq);
+	}
+
+	void enable(unsigned irq) {
+		assert(irq < IRQ_LINES);
+		printf("Enable %u\n", irq);
+		write32(GICD_ISENABLER0 + 4 * (irq / 32), 1 << (irq % 32));
 	}
 
 	void SecureMonitorHandler(uint32_t function, uint32_t param) {

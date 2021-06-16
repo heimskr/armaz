@@ -12,22 +12,36 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#include "assert.h"
+#include "BCM2711int.h"
+#include "IRQ.h"
 #include "MMIO.h"
 #include "printf.h"
 #include "Timer.h"
 
-namespace Armaz::Timer {
-	static ARMTimer *timer = nullptr;
+namespace Armaz::Timers {
+	Timer timer;
 
-	ARMTimer * getARMTimer() {
-		if (timer == nullptr) {
-			printf("Initializing timer.\n");
-			timer = (ARMTimer *) (MMIO::base + ARMTIMER_BASE);
-		}
-		return timer;
+	void Timer::init(bool /* calibrate */) {
+		Interrupts::connect(ARM_IRQLOCAL0_CNTPNS, handler, nullptr);
+		uint64_t cntfrq;
+		asm volatile("mrs %0, CNTFRQ_EL0" : "=r"(cntfrq));
+		assert(cntfrq % HZ == 0);
+		clockTicksPerHzTick = cntfrq / HZ;
+
+		uint64_t cntpct;
+		asm volatile("mrs %0, CNTPCT_EL0" : "=r"(cntpct));
+		asm volatile("msr CNTP_CVAL_EL0, %0" :: "r"(cntpct + clockTicksPerHzTick));
+		asm volatile("msr CNTP_CTL_EL0, %0" :: "r"(1));
 	}
 
-	void handle() {
-		printf("Timer\n");
+	void Timer::handler() {
+		printf("Timer: 0x%llx\n", this);
+	}
+
+	void Timer::handler(void *param) {
+		printf("Timer.\n");
+		assert(param);
+		((Timer *) param)->handler();
 	}
 }

@@ -1,6 +1,6 @@
 // Credit: https://github.com/s-matyukevich/raspberry-pi-os/blob/master/src/lesson03/src/entry.S
 
-
+#include "Entry.h"
 
 // #define SAVE_VFP_REGS_ON_IRQ
 // #define SAVE_VFP_REGS_ON_FIQ
@@ -19,9 +19,56 @@ _ZN5Armaz3ARM11disableIRQsEv:
 	msr daifset, #2
 	ret
 
+.globl _ZN5Armaz3ARM10initVectorEv
+_ZN5Armaz3ARM10initVectorEv:
+	adr x0, vectors
+	msr vbar_el1, x0
+	msr vbar_el2, x0
+	ret
+
+
+
+.macro vector handler
+.align 7
+b \handler
+.endm
+
+
+
+
 .align 11
 .globl vectors 
 vectors:
+	// from current EL with sp_el0
+	vector	_ZN5Armaz10Interrupts15SynchronousStubEv
+	vector	_ZN5Armaz10Interrupts7IRQStubEv
+	vector	_ZN5Armaz10Interrupts7FIQStubEv
+	vector	_ZN5Armaz10Interrupts10SErrorStubEv
+
+	// from current EL with sp_elx, x != 0
+	vector	_ZN5Armaz10Interrupts15SynchronousStubEv
+	vector	_ZN5Armaz10Interrupts7IRQStubEv
+	vector	_ZN5Armaz10Interrupts7FIQStubEv
+	vector	_ZN5Armaz10Interrupts10SErrorStubEv
+
+	// from lower EL, target EL minus 1 is AArch64
+	vector	HVCStub
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+
+	// from lower EL, target EL minus 1 is AArch32
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+	vector	_ZN5Armaz10Interrupts14UnexpectedStubEv
+
+
+
+
+
+
+
 
 
 
@@ -70,8 +117,8 @@ stub _ZN5Armaz10Interrupts10SErrorStubEv,      2
 
 
 
-.global IRQStub
-IRQStub:
+.global _ZN5Armaz10Interrupts7IRQStubEv
+_ZN5Armaz10Interrupts7IRQStubEv:
 	stp	x29, x30, [sp, #-16]! // save x29, x30 onto stack
 
 	mrs	x29, elr_el1 // save elr_el1, spsr_el1 onto stack
@@ -162,8 +209,8 @@ IRQStub:
 	eret
 
 
-.globl FIQStub
-FIQStub:
+.globl _ZN5Armaz10Interrupts7FIQStubEv
+_ZN5Armaz10Interrupts7FIQStubEv:
 #ifdef SAVE_VFP_REGS_ON_FIQ
 	stp	q30, q31, [sp, #-32]!
 	stp	q28, q29, [sp, #-32]!
@@ -247,6 +294,15 @@ FIQStub:
 	mov	w0, #0
 	str	w0, [x1]
 	b 1b
+
+
+HVCStub: // return to EL2h mode
+	mrs	x0, spsr_el2
+	bic	x0, x0, #0xf
+	mov	x1, #9
+	orr	x0, x0, x1
+	msr	spsr_el2, x0
+	eret
 
 
 .data

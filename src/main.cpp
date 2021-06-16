@@ -1,4 +1,5 @@
 #include "ARM.h"
+#include "assert.h"
 #include "GIC.h"
 #include "GIC400.h"
 #include "IRQ.h"
@@ -14,30 +15,42 @@ extern "C" void main() {
 	MMIO::init();
 	UART::init();
 
+	ARM::initVector();
+
 	// IRQs *irqs = (IRQs *) (MMIO::base + MMIO::IRQ_BASIC_PENDING);
 
-#if RASPPI == 4
+// #if RASPPI == 4
 	GIC400::init((void *) 0xff840000);
-#endif
+// #endif
 
 	Interrupts::init();
+	Timers::timer.init();
 
 
 
-	// MMIO::write(MMIO::ENABLE_IRQS_1, ARM::SYSTEM_TIMER_IRQ_0);
-	// MMIO::write(MMIO::ENABLE_BASIC_IRQS, ARM::SYSTEM_TIMER_IRQ_0);
+	// MMIO::write(MMIO::ENABLE_IRQS_1, ARM::SYSTEM_TIMER_IRQ_0 | (1 << 29));
+	// MMIO::write(MMIO::ENABLE_BASIC_IRQS, ARM::SYSTEM_TIMER_IRQ_0 | (1 << 29));
 	// irqs->irq0Enable0 = 1 << 29;
+
+	// Timer::getARMTimer()->Load = 0x4000;
+	// Timer::getARMTimer()->Control = Timer::ARMTIMER_CTRL_23BIT
+	//                               | Timer::ARMTIMER_CTRL_ENABLE
+	//                               | Timer::ARMTIMER_CTRL_INT_ENABLE
+	//                               | Timer::ARMTIMER_CTRL_PRESCALE_256;
+
 	// uint32_t freq;
 	// asm volatile("mrs %0, cntfrq_el0" : "=r" (freq));
 	// asm volatile("msr cntv_tval_el0, %0" :: "r"(freq));
 	// asm volatile("msr cntv_ctl_el0, %0" :: "r"(1));
 	// Timer::init(200000);
-	ARM::enableIRQs();
+	// // ARM::enableIRQs();
 	// Timer::init(2);
 
 	printf("Hello, world!\n");
 	printf("Execution level: %d\n", ARM::getEL());
 	printf("vectors: 0x%llx\n", &vectors);
+	// asm volatile("svc 12");
+	// printf("After SWI.\n");
 
 
 	/*
@@ -67,5 +80,5 @@ extern "C" void main() {
 		// asm volatile("wfe");
 	}
 	//*/
-	for (;;) asm volatile("wfe");
+	for (;;) asm volatile("wfi");
 }

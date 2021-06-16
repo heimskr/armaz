@@ -41,6 +41,8 @@ namespace Armaz {
 
 	namespace Interrupts {
 		void SMCStub();
+		void IRQStub();
+		void FIQStub();
 		void UnexpectedStub();
 		void SynchronousStub();
 		void SErrorStub();
@@ -48,7 +50,14 @@ namespace Armaz {
 		void ExceptionHandler(uint64_t exception, AbortFrame *frame);
 		void InterruptHandler();
 
+		using Handler = void (*)(void *);
+		extern Handler handlers[72];
+		extern void *params[72];
+
 		void init();
+		void connect(unsigned irq, Handler, void *);
+		void enable(unsigned irq);
+
 		inline void enableIRQs() { asm volatile("msr DAIFClr, #2"); }
 		inline void enableFIQs() { asm volatile("msr DAIFClr, #1"); }
 		inline void disableIRQs() { asm volatile("msr DAIFSet, #2"); }
