@@ -37,7 +37,6 @@ namespace Armaz::Mailbox {
 		flush(0);
 		write(channel, data);
 		auto result = read(channel);
-		printf("data = %x, result = %x\n", data, result);
 		return result;
 	}
 }

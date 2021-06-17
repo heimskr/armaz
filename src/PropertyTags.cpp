@@ -59,8 +59,6 @@ namespace Armaz::PropertyTags {
 
 		dataMemBarrier();
 
-		printf("code = %x, success = %x\n", buffer->code, CODE_RESPONSE_SUCCESS);
-
 		if (buffer->code != CODE_RESPONSE_SUCCESS)
 			return false;
 

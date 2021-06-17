@@ -17,13 +17,18 @@ namespace Armaz {
 		uint32_t size;
 	} __attribute__((packed));
 
+	// Usable for either model or revision.
+	struct PropertyTagBoard {
+		PropertyTag tag;
+		uint32_t board;
+	} __attribute__((packed));
+
 	namespace PropertyTags {
 		bool getTag(uint32_t id, void *tag, uint32_t tag_size, uint32_t requested_param_size = 0);
 		bool getTags(void *tags, uint32_t tags_size);
 
 		constexpr uint8_t CHANNEL_OUT = 8;
 		constexpr uint32_t VALUE_LENGTH_RESPONSE = 1 << 31;
-
 	}
 
 	constexpr uint32_t PROPTAG_END                    = 0x00000000;

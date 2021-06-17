@@ -143,8 +143,72 @@ namespace Armaz::Interrupts {
 		printf("SecureMonitorHandler(%u, %u)\n", function, param);
 	}
 
+	static uint64_t eh_regs[32];
+
 	void ExceptionHandler(uint64_t exception, AbortFrame *frame) {
-		printf("ExceptionHandler(%llu, 0x%llx) @ 0x%llx\n", exception, frame, frame->x30);
+		asm volatile("mov %0, x0" : "=r"(eh_regs[0]));
+		asm volatile("mov %0, x1" : "=r"(eh_regs[1]));
+		asm volatile("mov %0, x2" : "=r"(eh_regs[2]));
+		asm volatile("mov %0, x3" : "=r"(eh_regs[3]));
+		asm volatile("mov %0, x4" : "=r"(eh_regs[4]));
+		asm volatile("mov %0, x5" : "=r"(eh_regs[5]));
+		asm volatile("mov %0, x6" : "=r"(eh_regs[6]));
+		asm volatile("mov %0, x7" : "=r"(eh_regs[7]));
+		asm volatile("mov %0, x8" : "=r"(eh_regs[8]));
+		asm volatile("mov %0, x9" : "=r"(eh_regs[9]));
+		asm volatile("mov %0, x10" : "=r"(eh_regs[10]));
+		asm volatile("mov %0, x11" : "=r"(eh_regs[11]));
+		asm volatile("mov %0, x12" : "=r"(eh_regs[12]));
+		asm volatile("mov %0, x13" : "=r"(eh_regs[13]));
+		asm volatile("mov %0, x14" : "=r"(eh_regs[14]));
+		asm volatile("mov %0, x15" : "=r"(eh_regs[15]));
+		asm volatile("mov %0, x16" : "=r"(eh_regs[16]));
+		asm volatile("mov %0, x17" : "=r"(eh_regs[17]));
+		asm volatile("mov %0, x18" : "=r"(eh_regs[18]));
+		asm volatile("mov %0, x19" : "=r"(eh_regs[19]));
+		asm volatile("mov %0, x20" : "=r"(eh_regs[20]));
+		asm volatile("mov %0, x21" : "=r"(eh_regs[21]));
+		asm volatile("mov %0, x22" : "=r"(eh_regs[22]));
+		asm volatile("mov %0, x23" : "=r"(eh_regs[23]));
+		asm volatile("mov %0, x24" : "=r"(eh_regs[24]));
+		asm volatile("mov %0, x25" : "=r"(eh_regs[25]));
+		asm volatile("mov %0, x26" : "=r"(eh_regs[26]));
+		asm volatile("mov %0, x27" : "=r"(eh_regs[27]));
+		asm volatile("mov %0, x28" : "=r"(eh_regs[28]));
+		asm volatile("mov %0, x29" : "=r"(eh_regs[29]));
+		asm volatile("mov %0, x30" : "=r"(eh_regs[30]));
+		asm volatile("mov %0, x31" : "=r"(eh_regs[31]));
+		printf("ExceptionHandler(%llu, 0x%llx)\n", exception, frame);
+
+		// uint64_t esr_el1;
+		// uint64_t spsr_el1;
+		// uint64_t x30; // lr
+		// uint64_t elr_el1;
+		// uint64_t sp_el0;
+		// uint64_t sp_el1;
+		// uint64_t far_el1;
+		printf("[esr_el1  0x%llx]\n", frame->esr_el1);
+		printf("[spsr_el1 0x%llx]\n", frame->spsr_el1);
+		printf("[lr       0x%llx]\n", frame->x30);
+		printf("[elr_el1  0x%llx]\n", frame->elr_el1);
+		printf("[sp_el0   0x%llx]\n", frame->sp_el0);
+		printf("[sp_el1   0x%llx]\n", frame->sp_el1);
+		printf("[far_el1  0x%llx]\n", frame->far_el1);
+		for (unsigned i = 0; i < 32; ++i)
+			printf("[x%-2u 0x%llx]\n", i, eh_regs[i]);
+
+		uint64_t lr = eh_regs[29];
+		for (int i = 0; i < 10; ++i) {
+			printf("[0 0x%llx]\n", *(volatile uint64_t *) lr);
+			printf("[1 0x%llx]\n", *((volatile uint64_t *) lr + 1));
+			lr = *(volatile uint64_t *) lr;
+		}
+
+		printf("\n");
+
+		// for (int i = -3; i < 4; ++i)
+		// 	printf("[%-2d 0x%llx]\n", i, *((volatile uint64_t *) eh_regs[29] + i));
+
 		for (;;) asm volatile("wfi");
 	}
 
