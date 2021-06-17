@@ -1,6 +1,6 @@
 #pragma once
 
-// Credits: https://github.com/s-matyukevich/raspberry-pi-os
+// Credit: https://github.com/s-matyukevich/raspberry-pi-os
 
 // ***************************************
 // SCTLR_EL1, System Control Register (EL1), Page 2654 of AArch64-Reference-Manual.

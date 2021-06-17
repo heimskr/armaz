@@ -21,6 +21,10 @@
 #include "Synchronize.h"
 
 namespace Armaz {
+	void dataMemBarrier() {
+		asm volatile("dmb sy" ::: "memory");
+	}
+
 	void dataSyncBarrier() {
 		asm volatile("dsb sy" ::: "memory");
 	}

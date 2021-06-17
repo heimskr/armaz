@@ -22,12 +22,12 @@ namespace Armaz::MMIO {
 		}
 	}
 
-	void write(uintptr_t reg, uint32_t data) {
+	void write(ptrdiff_t reg, uint32_t data) {
 		*(volatile uint32_t *) (base + reg) = data;
 	}
 
-	uint32_t read(uintptr_t reg) {
-		return *(volatile uint32_t *) (base + reg);
+	uint32_t read(ptrdiff_t reg) {
+		return *(const volatile uint32_t *) (base + reg);
 	}
 }
 

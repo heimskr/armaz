@@ -33,6 +33,7 @@ namespace Armaz {
 	constexpr unsigned L2_CACHE_LINE_LENGTH =   64;
 	constexpr unsigned L2_SETWAY_SET_SHIFT  =    6; // Log2(L2_CACHE_LINE_LENGTH)
 
+	void dataMemBarrier();
 	void dataSyncBarrier();
 	void cleanDataCache();
 	void invalidateInstructionCache();

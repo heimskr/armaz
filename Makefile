@@ -8,6 +8,7 @@ CPPFLAGS    := -Wall -Wextra -O2 -std=c++20 -ffreestanding -nostdinc -nostdlib -
                -Imusl/arch/aarch64 -Imusl/arch/generic -Imusl/obj/src/internal -Imusl/src/include -Imusl/src/internal -Imusl/obj/include -Imusl/include
 BIN         := kernel8.elf
 IMAGE       := kernel8.img
+# LIBS        := musl/lib/libc.a
 
 QEMU_MAIN	?= -nographic -M raspi3 -m 1G -cpu max -smp 4 -drive file=disk.img,format=raw -kernel kernel8.img
 
@@ -21,9 +22,12 @@ asm/%.o: asm/%.S
 %.o: %.cpp
 	$(COMPILER) $(CPPFLAGS) -c $< -o $@
 
-$(IMAGE): $(OBJECTS)
-	aarch64-none-elf-ld -nostdlib -nostartfiles $(OBJECTS) -T link.ld -o $(BIN)
+$(IMAGE): $(OBJECTS) $(LIBS)
+	aarch64-none-elf-ld -nostdlib -nostartfiles $(OBJECTS) $(LIBS) -T link.ld -o $(BIN)
 	aarch64-none-elf-objcopy -O binary $(BIN) $(IMAGE)
+
+musl/lib/libc.a:
+	$(MAKE) -C musl
 
 clean:
 	rm -f **/*.o *.o $(BIN) $(IMAGE)
