@@ -40,18 +40,12 @@ extern "C" void main() {
 
 	printf("Hello, world!\n");
 
-	std::string strings[10];
-	for (int i = 0; i < 10; ++i)
-		strings[i] = std::to_string(i * 1000);
-	for (int i = 0; i < 10; ++i)
-		printf("%d -> [%s] @ 0x%llx\n", i, strings[i].c_str(), strings[i].c_str());
-
-	std::vector<std::string> strvec;
-	for (int i = 0;; ++i) {
-		printf("!!! %d\n", i);
-		strvec.push_back("42");
-		printf("... %d\n", i);
-		printf("Foo(%s) @ 0x%llx\n", strvec.back().c_str(), strvec.back().c_str());
+	for (int i = 0; i < 100; ++i) {
+		new char(i);
+		new short(i);
+		new int(i);
+		new long(i);
+		malloc(0x22);
 	}
 
 	PropertyTagMemory mem;
