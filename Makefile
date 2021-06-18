@@ -5,10 +5,10 @@ LINKER      ?= ld.lld-11
 CPPSRC      := $(shell find src -name \*.cpp)
 ASMSRC      := $(shell find asm/*.S)
 OBJECTS     := $(CPPSRC:.cpp=.o) $(ASMSRC:.S=.o)
-RPIFLAGS    := -march=armv8-a+crc -mcpu=cortex-a72 -DRASPPI=4
-CMNFLAGS    := -Wall -Wextra -Wno-asm-operand-widths -O2 -std=c++20 -ffreestanding -nostdinc -nostdlib -D_GNU_SOURCE -Iinclude $(RPIFLAGS) \
+RPIFLAGS    := -march=armv8-a+crc -mcpu=cortex-a72 -DRASPPI=4 -mno-unaligned-access
+CMNFLAGS    := -Wall -Wextra -Wno-asm-operand-widths -g -O2 -std=c++20 -ffreestanding -nostdinc -nostdlib -D_GNU_SOURCE -Iinclude $(RPIFLAGS) \
                -Imusl/arch/aarch64 -Imusl/arch/generic -Imusl/obj/src/internal -Imusl/src/include -Imusl/src/internal -Imusl/obj/include -Imusl/include
-CPPFLAGS    := $(CMNFLAGS) -fno-exceptions -fno-rtti -std=c++2a -Iinclude/lib/libcxx
+CPPFLAGS    := $(CMNFLAGS) -fno-exceptions -std=c++2a -Iinclude/lib/libcxx
 BIN         := kernel8.elf
 IMAGE       := kernel8.img
 LIBS        := musl/lib/libc.a lib/libgcc.a

@@ -1590,23 +1590,16 @@ vector<_Tp, _Allocator>::reserve(size_type __n)
 }
 
 template <class _Tp, class _Allocator>
-void
-vector<_Tp, _Allocator>::shrink_to_fit() _NOEXCEPT
-{
-    if (capacity() > size())
-    {
+void vector<_Tp, _Allocator>::shrink_to_fit() _NOEXCEPT {
+    if (capacity() > size()) {
 #ifndef _LIBCPP_NO_EXCEPTIONS
-        try
-        {
+        try {
 #endif  // _LIBCPP_NO_EXCEPTIONS
             allocator_type& __a = this->__alloc();
             __split_buffer<value_type, allocator_type&> __v(size(), size(), __a);
             __swap_out_circular_buffer(__v);
 #ifndef _LIBCPP_NO_EXCEPTIONS
-        }
-        catch (...)
-        {
-        }
+        } catch (...) {}
 #endif  // _LIBCPP_NO_EXCEPTIONS
     }
 }
@@ -1629,14 +1622,9 @@ vector<_Tp, _Allocator>::__push_back_slow_path(_Up& __x)
 }
 
 template <class _Tp, class _Allocator>
-inline _LIBCPP_INLINE_VISIBILITY
-void
-vector<_Tp, _Allocator>::push_back(const_reference __x)
-{
+inline _LIBCPP_INLINE_VISIBILITY void vector<_Tp, _Allocator>::push_back(const_reference __x) {
     if (this->__end_ != this->__end_cap())
-    {
         __construct_one_at_end(__x);
-    }
     else
         __push_back_slow_path(__x);
 }
@@ -1644,14 +1632,9 @@ vector<_Tp, _Allocator>::push_back(const_reference __x)
 #ifndef _LIBCPP_CXX03_LANG
 
 template <class _Tp, class _Allocator>
-inline _LIBCPP_INLINE_VISIBILITY
-void
-vector<_Tp, _Allocator>::push_back(value_type&& __x)
-{
+inline _LIBCPP_INLINE_VISIBILITY void vector<_Tp, _Allocator>::push_back(value_type&& __x) {
     if (this->__end_ < this->__end_cap())
-    {
         __construct_one_at_end(_VSTD::move(__x));
-    }
     else
         __push_back_slow_path(_VSTD::move(__x));
 }

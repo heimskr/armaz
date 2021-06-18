@@ -15,6 +15,8 @@
 #include <__memory/pointer_traits.h>
 #include <type_traits>
 
+#include "printf.h"
+
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
 #endif
@@ -477,9 +479,9 @@ struct _LIBCPP_TEMPLATE_VIS allocator_traits
 
     template <class _Tp, class... _Args>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-        static void construct(allocator_type& __a, _Tp* __p, _Args&&... __args)
-            {__construct(__has_construct<allocator_type, _Tp*, _Args...>(),
-                         __a, __p, _VSTD::forward<_Args>(__args)...);}
+        static void construct(allocator_type& __a, _Tp* __p, _Args&&... __args) {
+            __construct(__has_construct<allocator_type, _Tp*, _Args...>(), __a, __p, _VSTD::forward<_Args>(__args)...);
+        }
 
     template <class _Tp>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
@@ -522,8 +524,7 @@ private:
 
     template <class _Tp, class... _Args>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
-        static void __construct(false_type, allocator_type&, _Tp* __p, _Args&&... __args)
-            {
+        static void __construct(false_type, allocator_type&, _Tp* __p, _Args&&... __args) {
 #if _LIBCPP_STD_VER > 17
                 _VSTD::construct_at(__p, _VSTD::forward<_Args>(__args)...);
 #else

@@ -12,6 +12,7 @@
 #include "RPi.h"
 #include "Timer.h"
 #include "UART.h"
+
 #include <string>
 #include <vector>
 
@@ -34,16 +35,23 @@ extern "C" void main() {
 	GIC400::init((void *) 0xff840000);
 #endif
 
-
 	Interrupts::init();
 	// Timers::timer.init();
 
 	printf("Hello, world!\n");
 
-	std::vector<std::string> strings;
-	for (;;) {
-		strings.push_back("42");
-		printf("Foo(%s) @ 0x%llx\n", strings.back().c_str(), strings.back().c_str());
+	std::string strings[10];
+	for (int i = 0; i < 10; ++i)
+		strings[i] = std::to_string(i * 1000);
+	for (int i = 0; i < 10; ++i)
+		printf("%d -> [%s] @ 0x%llx\n", i, strings[i].c_str(), strings[i].c_str());
+
+	std::vector<std::string> strvec;
+	for (int i = 0;; ++i) {
+		printf("!!! %d\n", i);
+		strvec.push_back("42");
+		printf("... %d\n", i);
+		printf("Foo(%s) @ 0x%llx\n", strvec.back().c_str(), strvec.back().c_str());
 	}
 
 	PropertyTagMemory mem;

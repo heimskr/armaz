@@ -77,7 +77,7 @@ vectors:
 
 
 .macro stub name, exception
-.globl \name
+.global \name
 \name:
 	mrs	x0, esr_el1
 	mrs	x1, spsr_el1

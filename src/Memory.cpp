@@ -3,6 +3,8 @@
 #include "Memory.h"
 #include "printf.h"
 
+// #define DEBUG_ALLOCATION
+
 Armaz::Memory::Allocator *global_memory = nullptr;
 
 namespace Armaz::Memory {
@@ -194,10 +196,13 @@ extern "C" void * malloc(size_t size) {
 // #endif
 	if (global_memory == nullptr)
 		return nullptr;
-	return global_memory->allocate(size);
+	auto result = global_memory->allocate(size);
+	printf("malloc complete: 0x%llx\n", result);
+	return result;
 }
 
 extern "C" void * calloc(size_t count, size_t size) {
+	printf("calloc(0x%llx x 0x%llx)\n", count, size);
 	void *chunk = malloc(count * size);
 	if (chunk)
 		memset(chunk, 0, count * size);
@@ -210,12 +215,26 @@ extern "C" void free(void *ptr) {
 }
 
 #ifdef __clang__
-void * operator new(size_t size)   { return malloc(size); }
-void * operator new[](size_t size) { return malloc(size); }
-void * operator new(size_t, void *ptr)   { return ptr; }
-void * operator new[](size_t, void *ptr) { return ptr; }
-void operator delete(void *ptr)   noexcept { free(ptr); }
-void operator delete[](void *ptr) noexcept { free(ptr); }
+void * operator new(size_t size)   {
+	auto result = malloc(size);
+	return result;
+}
+void * operator new[](size_t size) {
+	auto result = malloc(size);
+	return result;
+}
+void * operator new(size_t, void *ptr)   {
+	return ptr;
+}
+void * operator new[](size_t, void *ptr) {
+	return ptr;
+}
+void operator delete(void *ptr)   noexcept {
+	free(ptr);
+}
+void operator delete[](void *ptr) noexcept {
+	free(ptr);
+}
 void operator delete(void *, void *)   noexcept {}
 void operator delete[](void *, void *) noexcept {}
 void operator delete(void *, unsigned long)   noexcept {}

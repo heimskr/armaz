@@ -28,17 +28,12 @@ _LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, char)
 _LIBCPP_STRING_V1_EXTERN_TEMPLATE_LIST(_LIBCPP_EXTERN_TEMPLATE_DEFINE, wchar_t)
 #endif
 
-template
-    string
-    operator+<char, char_traits<char>, allocator<char> >(char const*, string const&);
+template string operator+<char, char_traits<char>, allocator<char> >(char const*, string const&);
 
-namespace
-{
+namespace {
 
 template<typename T>
-inline
-void throw_helper( const string& msg )
-{
+inline void throw_helper( const string& msg ) {
 #ifndef _LIBCPP_NO_EXCEPTIONS
     throw T( msg );
 #else
@@ -47,25 +42,18 @@ void throw_helper( const string& msg )
 #endif
 }
 
-inline
-void throw_from_string_out_of_range( const string& func )
-{
+inline void throw_from_string_out_of_range( const string& func ) {
     throw_helper<out_of_range>(func + ": out of range");
 }
 
-inline
-void throw_from_string_invalid_arg( const string& func )
-{
+inline void throw_from_string_invalid_arg( const string& func ) {
     throw_helper<invalid_argument>(func + ": no conversion");
 }
 
 // as_integer
 
 template<typename V, typename S, typename F>
-inline
-V
-as_integer_helper(const string& func, const S& str, size_t* idx, int base, F f)
-{
+inline V as_integer_helper(const string& func, const S& str, size_t* idx, int base, F f) {
     typename S::value_type* ptr = nullptr;
     const typename S::value_type* const p = str.c_str();
     typename remove_reference<decltype(errno)>::type errno_save = errno;
@@ -82,16 +70,11 @@ as_integer_helper(const string& func, const S& str, size_t* idx, int base, F f)
 }
 
 template<typename V, typename S>
-inline
-V
-as_integer(const string& func, const S& s, size_t* idx, int base);
+inline V as_integer(const string& func, const S& s, size_t* idx, int base);
 
 // string
 template<>
-inline
-int
-as_integer(const string& func, const string& s, size_t* idx, int base )
-{
+inline int as_integer(const string& func, const string& s, size_t* idx, int base ) {
     // Use long as no Standard string to integer exists.
     long r = as_integer_helper<long>( func, s, idx, base, strtol );
     if (r < numeric_limits<int>::min() || numeric_limits<int>::max() < r)
@@ -100,43 +83,28 @@ as_integer(const string& func, const string& s, size_t* idx, int base )
 }
 
 template<>
-inline
-long
-as_integer(const string& func, const string& s, size_t* idx, int base )
-{
+inline long as_integer(const string& func, const string& s, size_t* idx, int base ) {
     return as_integer_helper<long>( func, s, idx, base, strtol );
 }
 
 template<>
-inline
-unsigned long
-as_integer( const string& func, const string& s, size_t* idx, int base )
-{
+inline unsigned long as_integer( const string& func, const string& s, size_t* idx, int base ) {
     return as_integer_helper<unsigned long>( func, s, idx, base, strtoul );
 }
 
 template<>
-inline
-long long
-as_integer( const string& func, const string& s, size_t* idx, int base )
-{
+inline long long as_integer( const string& func, const string& s, size_t* idx, int base ) {
     return as_integer_helper<long long>( func, s, idx, base, strtoll );
 }
 
 template<>
-inline
-unsigned long long
-as_integer( const string& func, const string& s, size_t* idx, int base )
-{
+inline unsigned long long as_integer( const string& func, const string& s, size_t* idx, int base ) {
     return as_integer_helper<unsigned long long>( func, s, idx, base, strtoull );
 }
 
 // wstring
 template<>
-inline
-int
-as_integer( const string& func, const wstring& s, size_t* idx, int base )
-{
+inline int as_integer( const string& func, const wstring& s, size_t* idx, int base ) {
     // Use long as no Stantard string to integer exists.
     long r = as_integer_helper<long>( func, s, idx, base, wcstol );
     if (r < numeric_limits<int>::min() || numeric_limits<int>::max() < r)
@@ -145,44 +113,29 @@ as_integer( const string& func, const wstring& s, size_t* idx, int base )
 }
 
 template<>
-inline
-long
-as_integer( const string& func, const wstring& s, size_t* idx, int base )
-{
+inline long as_integer( const string& func, const wstring& s, size_t* idx, int base ) {
     return as_integer_helper<long>( func, s, idx, base, wcstol );
 }
 
 template<>
-inline
-unsigned long
-as_integer( const string& func, const wstring& s, size_t* idx, int base )
-{
+inline unsigned long as_integer( const string& func, const wstring& s, size_t* idx, int base ) {
     return as_integer_helper<unsigned long>( func, s, idx, base, wcstoul );
 }
 
 template<>
-inline
-long long
-as_integer( const string& func, const wstring& s, size_t* idx, int base )
-{
+inline long long as_integer( const string& func, const wstring& s, size_t* idx, int base ) {
     return as_integer_helper<long long>( func, s, idx, base, wcstoll );
 }
 
 template<>
-inline
-unsigned long long
-as_integer( const string& func, const wstring& s, size_t* idx, int base )
-{
+inline unsigned long long as_integer( const string& func, const wstring& s, size_t* idx, int base ) {
     return as_integer_helper<unsigned long long>( func, s, idx, base, wcstoull );
 }
 
 // as_float
 
 template<typename V, typename S, typename F>
-inline
-V
-as_float_helper(const string& func, const S& str, size_t* idx, F f )
-{
+inline V as_float_helper(const string& func, const S& str, size_t* idx, F f ) {
     typename S::value_type* ptr = nullptr;
     const typename S::value_type* const p = str.c_str();
     typename remove_reference<decltype(errno)>::type errno_save = errno;
@@ -199,167 +152,112 @@ as_float_helper(const string& func, const S& str, size_t* idx, F f )
 }
 
 template<typename V, typename S>
-inline
-V as_float( const string& func, const S& s, size_t* idx = nullptr );
+inline V as_float( const string& func, const S& s, size_t* idx = nullptr );
 
 template<>
-inline
-float
-as_float( const string& func, const string& s, size_t* idx )
-{
+inline float as_float( const string& func, const string& s, size_t* idx ) {
     return as_float_helper<float>( func, s, idx, strtof );
 }
 
 template<>
-inline
-double
-as_float(const string& func, const string& s, size_t* idx )
-{
+inline double as_float(const string& func, const string& s, size_t* idx ) {
     return as_float_helper<double>( func, s, idx, strtod );
 }
 
 template<>
-inline
-long double
-as_float( const string& func, const string& s, size_t* idx )
-{
+inline long double as_float( const string& func, const string& s, size_t* idx ) {
     return as_float_helper<long double>( func, s, idx, strtold );
 }
 
 template<>
-inline
-float
-as_float( const string& func, const wstring& s, size_t* idx )
-{
+inline float as_float( const string& func, const wstring& s, size_t* idx ) {
     return as_float_helper<float>( func, s, idx, wcstof );
 }
 
 template<>
-inline
-double
-as_float( const string& func, const wstring& s, size_t* idx )
-{
+inline double as_float( const string& func, const wstring& s, size_t* idx ) {
     return as_float_helper<double>( func, s, idx, wcstod );
 }
 
 template<>
-inline
-long double
-as_float( const string& func, const wstring& s, size_t* idx )
-{
+inline long double as_float( const string& func, const wstring& s, size_t* idx ) {
     return as_float_helper<long double>( func, s, idx, wcstold );
 }
 
 }  // unnamed namespace
 
-int
-stoi(const string& str, size_t* idx, int base)
-{
+int stoi(const string& str, size_t* idx, int base) {
     return as_integer<int>( "stoi", str, idx, base );
 }
 
-int
-stoi(const wstring& str, size_t* idx, int base)
-{
+int stoi(const wstring& str, size_t* idx, int base) {
     return as_integer<int>( "stoi", str, idx, base );
 }
 
-long
-stol(const string& str, size_t* idx, int base)
-{
+long stol(const string& str, size_t* idx, int base) {
     return as_integer<long>( "stol", str, idx, base );
 }
 
-long
-stol(const wstring& str, size_t* idx, int base)
-{
+long stol(const wstring& str, size_t* idx, int base) {
     return as_integer<long>( "stol", str, idx, base );
 }
 
-unsigned long
-stoul(const string& str, size_t* idx, int base)
-{
+unsigned long stoul(const string& str, size_t* idx, int base) {
     return as_integer<unsigned long>( "stoul", str, idx, base );
 }
 
-unsigned long
-stoul(const wstring& str, size_t* idx, int base)
-{
+unsigned long stoul(const wstring& str, size_t* idx, int base) {
     return as_integer<unsigned long>( "stoul", str, idx, base );
 }
 
-long long
-stoll(const string& str, size_t* idx, int base)
-{
+long long stoll(const string& str, size_t* idx, int base) {
     return as_integer<long long>( "stoll", str, idx, base );
 }
 
-long long
-stoll(const wstring& str, size_t* idx, int base)
-{
+long long stoll(const wstring& str, size_t* idx, int base) {
     return as_integer<long long>( "stoll", str, idx, base );
 }
 
-unsigned long long
-stoull(const string& str, size_t* idx, int base)
-{
+unsigned long long stoull(const string& str, size_t* idx, int base) {
     return as_integer<unsigned long long>( "stoull", str, idx, base );
 }
 
-unsigned long long
-stoull(const wstring& str, size_t* idx, int base)
-{
+unsigned long long stoull(const wstring& str, size_t* idx, int base) {
     return as_integer<unsigned long long>( "stoull", str, idx, base );
 }
 
-float
-stof(const string& str, size_t* idx)
-{
+float stof(const string& str, size_t* idx) {
     return as_float<float>( "stof", str, idx );
 }
 
-float
-stof(const wstring& str, size_t* idx)
-{
+float stof(const wstring& str, size_t* idx) {
     return as_float<float>( "stof", str, idx );
 }
 
-double
-stod(const string& str, size_t* idx)
-{
+double stod(const string& str, size_t* idx) {
     return as_float<double>( "stod", str, idx );
 }
 
-double
-stod(const wstring& str, size_t* idx)
-{
+double stod(const wstring& str, size_t* idx) {
     return as_float<double>( "stod", str, idx );
 }
 
-long double
-stold(const string& str, size_t* idx)
-{
+long double stold(const string& str, size_t* idx) {
     return as_float<long double>( "stold", str, idx );
 }
 
-long double
-stold(const wstring& str, size_t* idx)
-{
+long double stold(const wstring& str, size_t* idx) {
     return as_float<long double>( "stold", str, idx );
 }
 
 // to_string
 
-namespace
-{
+namespace {
 
 // as_string
 
 template<typename S, typename P, typename V >
-inline
-S
-as_string(P sprintf_like, S s, const typename S::value_type* fmt, V a)
-{
+inline S as_string(P sprintf_like, S s, const typename S::value_type* fmt, V a) {
     typedef typename S::size_type size_type;
     size_type available = s.size();
     while (true)
@@ -386,11 +284,8 @@ template <class S>
 struct initial_string;
 
 template <>
-struct initial_string<string>
-{
-    string
-    operator()() const
-    {
+struct initial_string<string> {
+    string operator()() const {
         string s;
         s.resize(s.capacity());
         return s;
@@ -398,11 +293,8 @@ struct initial_string<string>
 };
 
 template <>
-struct initial_string<wstring>
-{
-    wstring
-    operator()() const
-    {
+struct initial_string<wstring> {
+    wstring operator()() const {
         wstring s(20, wchar_t());
         s.resize(s.capacity());
         return s;
@@ -413,8 +305,7 @@ typedef int (*wide_printf)(wchar_t* __restrict, size_t, const wchar_t*__restrict
 
 inline
 wide_printf
-get_swprintf()
-{
+get_swprintf() {
 #ifndef _LIBCPP_MSVCRT
     return swprintf;
 #else
@@ -423,8 +314,7 @@ get_swprintf()
 }
 
 template <typename S, typename V>
-S i_to_string(const V v)
-{
+S i_to_string(const V v) {
 //  numeric_limits::digits10 returns value less on 1 than desired for unsigned numbers.
 //  For example, for 1-byte unsigned value digits10 is 2 (999 can not be represented),
 //  so we need +1 here.

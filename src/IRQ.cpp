@@ -179,14 +179,7 @@ namespace Armaz::Interrupts {
 		asm volatile("mov %0, x30" : "=r"(eh_regs[30]));
 		asm volatile("mov %0, x31" : "=r"(eh_regs[31]));
 		printf("ExceptionHandler(%llu, 0x%llx)\n", exception, frame);
-
-		// uint64_t esr_el1;
-		// uint64_t spsr_el1;
-		// uint64_t x30; // lr
-		// uint64_t elr_el1;
-		// uint64_t sp_el0;
-		// uint64_t sp_el1;
-		// uint64_t far_el1;
+		printf("Reason: 0b%b\n", (frame->esr_el1 >> 26) & 0b111111);
 		printf("[esr_el1  0x%llx]\n", frame->esr_el1);
 		printf("[spsr_el1 0x%llx]\n", frame->spsr_el1);
 		printf("[lr       0x%llx]\n", frame->x30);
@@ -194,6 +187,7 @@ namespace Armaz::Interrupts {
 		printf("[sp_el0   0x%llx]\n", frame->sp_el0);
 		printf("[sp_el1   0x%llx]\n", frame->sp_el1);
 		printf("[far_el1  0x%llx]\n", frame->far_el1);
+
 		for (unsigned i = 0; i < 32; ++i)
 			printf("[x%-2u 0x%llx]\n", i, eh_regs[i]);
 
@@ -201,6 +195,8 @@ namespace Armaz::Interrupts {
 		for (int i = 0; i < 10; ++i) {
 			printf("[0 0x%llx]\n", *(volatile uint64_t *) lr);
 			printf("[1 0x%llx]\n", *((volatile uint64_t *) lr + 1));
+			if (*((volatile uint64_t *) lr + 1) == 0x50)
+				break;
 			lr = *(volatile uint64_t *) lr;
 		}
 
