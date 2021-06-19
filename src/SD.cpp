@@ -29,23 +29,24 @@
 #include "Timer.h"
 #include "UART.h"
 
+constexpr ptrdiff_t EMMC_BASE        = 0x340000;
 // constexpr ptrdiff_t EMMC_ARG2        = 0x300000;
-constexpr ptrdiff_t EMMC_BLKSIZECNT  = 0x300004;
-constexpr ptrdiff_t EMMC_ARG1        = 0x300008;
-constexpr ptrdiff_t EMMC_CMDTM       = 0x30000c;
-constexpr ptrdiff_t EMMC_RESP0       = 0x300010;
-constexpr ptrdiff_t EMMC_RESP1       = 0x300014;
-constexpr ptrdiff_t EMMC_RESP2       = 0x300018;
-constexpr ptrdiff_t EMMC_RESP3       = 0x30001c;
-constexpr ptrdiff_t EMMC_DATA        = 0x300020;
-constexpr ptrdiff_t EMMC_STATUS      = 0x300024;
-constexpr ptrdiff_t EMMC_CONTROL0    = 0x300028;
-constexpr ptrdiff_t EMMC_CONTROL1    = 0x30002c;
-constexpr ptrdiff_t EMMC_INTERRUPT   = 0x300030;
-constexpr ptrdiff_t EMMC_INT_MASK    = 0x300034;
-constexpr ptrdiff_t EMMC_INT_EN      = 0x300038;
-// constexpr ptrdiff_t EMMC_CONTROL2    = 0x30003c;
-constexpr ptrdiff_t EMMC_SLOTISR_VER = 0x3000fc;
+constexpr ptrdiff_t EMMC_BLKSIZECNT  = EMMC_BASE + 0x04;
+constexpr ptrdiff_t EMMC_ARG1        = EMMC_BASE + 0x08;
+constexpr ptrdiff_t EMMC_CMDTM       = EMMC_BASE + 0x0c;
+constexpr ptrdiff_t EMMC_RESP0       = EMMC_BASE + 0x10;
+constexpr ptrdiff_t EMMC_RESP1       = EMMC_BASE + 0x14;
+constexpr ptrdiff_t EMMC_RESP2       = EMMC_BASE + 0x18;
+constexpr ptrdiff_t EMMC_RESP3       = EMMC_BASE + 0x1c;
+constexpr ptrdiff_t EMMC_DATA        = EMMC_BASE + 0x20;
+constexpr ptrdiff_t EMMC_STATUS      = EMMC_BASE + 0x24;
+constexpr ptrdiff_t EMMC_CONTROL0    = EMMC_BASE + 0x28;
+constexpr ptrdiff_t EMMC_CONTROL1    = EMMC_BASE + 0x2c;
+constexpr ptrdiff_t EMMC_INTERRUPT   = EMMC_BASE + 0x30;
+constexpr ptrdiff_t EMMC_INT_MASK    = EMMC_BASE + 0x34;
+constexpr ptrdiff_t EMMC_INT_EN      = EMMC_BASE + 0x38;
+// constexpr ptrdiff_t EMMC_CONTROL2    = EMMC_BASE + 0x3c;
+constexpr ptrdiff_t EMMC_SLOTISR_VER = EMMC_BASE + 0xfc;
 
 // Command flags
 constexpr uint32_t CMD_NEED_APP    = 0x80000000;
@@ -353,6 +354,9 @@ namespace Armaz::SD {
 	/** Initialize EMMC to read SDHC card */
 	int init() {
 		int64_t result, timeout, ccs = 0;
+
+		// Thanks to rst on the Raspberry Pi forums
+		MMIO::write(EMMC_CONTROL0, MMIO::read(EMMC_CONTROL0) | (0xf << 8));
 
 		// GPIO_CD
 		MMIO::write(GPIO::GPFSEL4, MMIO::read(GPIO::GPFSEL4) & ~(7 << 21));
