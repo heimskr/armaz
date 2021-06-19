@@ -22,6 +22,27 @@
 namespace Armaz::Timers {
 	Timer timer;
 
+	uint64_t getSystemTimer() {
+		uint32_t high, low;
+
+		high = MMIO::read(TIMER_CHI);
+		low  = MMIO::read(TIMER_CLO);
+
+		if (high != MMIO::read(TIMER_CHI)) {
+			high = MMIO::read(TIMER_CHI);
+			low  = MMIO::read(TIMER_CLO);
+		}
+
+		return (static_cast<uint64_t>(high) << 32) | low;
+	}
+
+	void waitMicroseconds(size_t count) {
+		uint64_t time = getSystemTimer();
+		if (!time)
+			return;
+		while (getSystemTimer() < time + count);
+	}
+
 	void Timer::init(bool /* calibrate */) {
 		if (connected)
 			return;

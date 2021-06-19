@@ -14,6 +14,7 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#include <stddef.h>
 #include <stdint.h>
 
 namespace Armaz::Timers {
@@ -22,7 +23,7 @@ namespace Armaz::Timers {
 	constexpr unsigned HZ = 540;
 
 	/** See the documentation for the ARM side timer (Section 14 of the BCM2835 Peripherals PDF) */
-	constexpr uintptr_t ARMTIMER_BASE = 0xb400;
+	constexpr ptrdiff_t ARMTIMER_BASE = 0xb400;
 
 	/** 0: 16-bit counters; 1: 23-bit counter */
 	constexpr int ARMTIMER_CTRL_23BIT = 1 << 1;
@@ -38,6 +39,16 @@ namespace Armaz::Timers {
 	/** 0: Timer disabled; 1: Timer enabled */
 	constexpr int ARMTIMER_CTRL_ENABLE  = 1 << 7;
 	constexpr int ARMTIMER_CTRL_DISABLE = 0 << 7;
+
+	inline void waitCycles(size_t count) {
+		if (!count)
+			return;
+		while (count--)
+			asm volatile("nop");
+	}
+
+	uint64_t getSystemTimer();
+	void waitMicroseconds(size_t);
 
 	class Timer {
 		private:
@@ -56,13 +67,13 @@ namespace Armaz::Timers {
 
 	extern Timer timer;
 
-	constexpr uintptr_t TIMER_CS  = 0x3000;
-	constexpr uintptr_t TIMER_CLO = 0x3004;
-	constexpr uintptr_t TIMER_CHI = 0x3008;
-	constexpr uintptr_t TIMER_C0  = 0x300c;
-	constexpr uintptr_t TIMER_C1  = 0x3010;
-	constexpr uintptr_t TIMER_C2  = 0x3014;
-	constexpr uintptr_t TIMER_C3  = 0x3018;
+	constexpr ptrdiff_t TIMER_CS  = 0x3000;
+	constexpr ptrdiff_t TIMER_CLO = 0x3004;
+	constexpr ptrdiff_t TIMER_CHI = 0x3008;
+	constexpr ptrdiff_t TIMER_C0  = 0x300c;
+	constexpr ptrdiff_t TIMER_C1  = 0x3010;
+	constexpr ptrdiff_t TIMER_C2  = 0x3014;
+	constexpr ptrdiff_t TIMER_C3  = 0x3018;
 
 	constexpr uint32_t TIMER_CS_M0 = 1 << 0;
 	constexpr uint32_t TIMER_CS_M1 = 1 << 1;

@@ -10,6 +10,7 @@
 #include "printf.h"
 #include "PropertyTags.h"
 #include "RPi.h"
+#include "SD.h"
 #include "Timer.h"
 #include "UART.h"
 
@@ -21,6 +22,9 @@ using namespace Armaz;
 extern "C" void main() {
 	MMIO::init();
 	UART::init();
+
+	printf("Hello, world!\n");
+
 	Memory::Allocator memory;
 	memory.setBounds((char *) MEM_HIGHMEM_START, (char *) MEM_HIGHMEM_END);
 
@@ -38,15 +42,6 @@ extern "C" void main() {
 	Interrupts::init();
 	// Timers::timer.init();
 
-	printf("Hello, world!\n");
-
-	for (int i = 0; i < 100; ++i) {
-		new char(i);
-		new short(i);
-		new int(i);
-		new long(i);
-		malloc(0x22);
-	}
 
 	PropertyTagMemory mem;
 	if (PropertyTags::getTag(PROPTAG_GET_ARM_MEMORY, &mem, sizeof(mem))) {
@@ -68,6 +63,19 @@ extern "C" void main() {
 	} else {
 		printf("Reading model failed.\n");
 	}
+
+	printf("SD init: 0x%x\n", SD::init());
+	uint8_t bytes[512];
+	for (unsigned i = 0; i < 512; ++i)
+		bytes[i] = 0;
+	printf("SD read: 0x%x", SD::readBlock(0, bytes, 1));
+	for (unsigned i = 0; i < 512; ++i) {
+		if (i % 64 == 0)
+			UART::write('\n');
+		printf("%02x", bytes[i]);
+	}
+
+	UART::write('\n');
 
 	for (;;) asm volatile("wfi");
 }
