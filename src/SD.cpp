@@ -23,6 +23,7 @@
  */
 
 #include "GPIO.h"
+#include "IRQ.h"
 #include "MMIO.h"
 #include "printf.h"
 #include "SD.h"
@@ -125,18 +126,19 @@ namespace Armaz::SD {
 		return (timeout <= 0 || (MMIO::read(EMMC_INTERRUPT) & INT_ERROR_MASK))? ERROR : SUCCESS;
 	}
 
-	/** Wait for interrupt */
 	static int waitForInterrupt(uint32_t mask) {
 		uint32_t r, m = mask | INT_ERROR_MASK;
-		int timeout = 1000000;
+		int timeout = 1'000'000;
 		while (!(MMIO::read(EMMC_INTERRUPT) & m) && timeout--)
 			Timers::waitMicroseconds(1);
 		r = MMIO::read(EMMC_INTERRUPT);
 
 		if (timeout <= 0 || (r & INT_CMD_TIMEOUT) || (r & INT_DATA_TIMEOUT) ) {
 			MMIO::write(EMMC_INTERRUPT, r);
+			printf("[%s:%d] timeout = %d; %d, %d\n", __FILE__, __LINE__, timeout, !!(r & INT_CMD_TIMEOUT), !!(r & INT_DATA_TIMEOUT));
 			return TIMEOUT;
 		} else if (r & INT_ERROR_MASK) {
+			printf("[%s:%d] r = 0x%x\n", __FILE__, __LINE__, r);
 			MMIO::write(EMMC_INTERRUPT, r);
 			return ERROR;
 		}
@@ -145,23 +147,25 @@ namespace Armaz::SD {
 		return SUCCESS;
 	}
 
-	/** Send a command */
 	static int sendCommand(uint32_t code, uint32_t arg) {
 		int result = 0;
 		sd_error = SUCCESS;
+		printf("code = 0x%x, arg = 0x%x\n", code, arg);
 
 		if (code & CMD_NEED_APP) {
 			result = sendCommand(CMD_APP_CMD | (sd_rca? CMD_RSPNS_48 : 0), sd_rca);
 			if (sd_rca && !result) {
-				UART::write("ERROR: failed to send SD APP command\n");
+				printf("ERROR: failed to send SD APP command: 0x%x\n", result);
 				sd_error = ERROR;
 				return SUCCESS;
 			}
 			code &= ~CMD_NEED_APP;
 		}
 
-		if (status(SR_CMD_INHIBIT) == SUCCESS) {
-			UART::write("ERROR: EMMC busy\n");
+		printf("new code: 0x%x\n", code);
+
+		if ((result = status(SR_CMD_INHIBIT))) {
+			printf("ERROR: EMMC busy: 0x%x\n", result);
 			sd_error = TIMEOUT;
 			return SUCCESS;
 		}
@@ -169,15 +173,16 @@ namespace Armaz::SD {
 		printf("EMMC: Sending command 0x%x, arg = 0x%x\n", code, arg);
 
 		MMIO::write(EMMC_INTERRUPT, MMIO::read(EMMC_INTERRUPT));
-		MMIO::write(EMMC_ARG1, arg); MMIO::write(EMMC_CMDTM, code);
+		MMIO::write(EMMC_ARG1, arg);
+		MMIO::write(EMMC_CMDTM, code);
 
 		if (code == CMD_SEND_OP_COND)
 			Timers::waitMicroseconds(1000);
 		else if (code == CMD_SEND_IF_COND || code == CMD_APP_CMD)
 			Timers::waitMicroseconds(100);
 		
-		if ((result = waitForInterrupt(INT_CMD_DONE)) == SUCCESS) {
-			UART::write("ERROR: failed to send EMMC command\n");
+		if ((result = waitForInterrupt(INT_CMD_DONE))) {
+			printf("ERROR: failed to send EMMC command: 0x%x\n", result);
 			sd_error = result;
 			return SUCCESS;
 		}
@@ -249,8 +254,8 @@ namespace Armaz::SD {
 					return 0;
 			}
 
-			if ((result = waitForInterrupt(INT_READ_RDY)) != SUCCESS) {
-				UART::write("\rERROR: Timeout waiting for ready to read\n");
+			if ((result = waitForInterrupt(INT_READ_RDY))) {
+				printf("\rERROR: Timeout waiting for ready to read: 0x%x\n", result);
 				sd_error = result;
 				return 0;
 			}
@@ -328,7 +333,7 @@ namespace Armaz::SD {
 			shift = 0;
 		}
 
-		printf("sd_clk divisor = 0x%x, shift = 0x%x\n", divisor, shift);
+		printf("setFrequency divisor = 0x%x, shift = 0x%x\n", divisor, shift);
 
 		if (HOST_SPEC_V2 < sd_hv)
 			h = (divisor & 0x300) >> 2;
@@ -349,6 +354,10 @@ namespace Armaz::SD {
 		}
 
 		return SUCCESS;
+	}
+
+	static void interruptHandler(void *) {
+		printf("SD interrupt\n");
 	}
 
 	/** Initialize EMMC to read SDHC card */
@@ -394,6 +403,8 @@ namespace Armaz::SD {
 		MMIO::write(EMMC_CONTROL0, 0);
 		MMIO::write(EMMC_CONTROL1, MMIO::read(EMMC_CONTROL1) | C1_SRST_HC);
 
+		Interrupts::connect(62, interruptHandler, nullptr);
+
 		timeout = 10000;
 		do {
 			Timers::waitMicroseconds(10);
@@ -417,9 +428,12 @@ namespace Armaz::SD {
 		MMIO::write(EMMC_INT_MASK, 0xffffffff);
 		sd_scr[0] = sd_scr[1] = sd_rca = sd_error = 0;
 
+		printf("About to go idle\n");
 		sendCommand(CMD_GO_IDLE, 0);
 		if (sd_error)
 			return sd_error;
+
+		printf("Successfully went idle\n");
 
 		sendCommand(CMD_SEND_IF_COND, 0x000001aa);
 		if (sd_error)
@@ -440,7 +454,7 @@ namespace Armaz::SD {
 			printf("0%llx\n", result);
 
 			if (sd_error != TIMEOUT && sd_error != SUCCESS) {
-				UART::write("ERROR: EMMC ACMD41 returned error\n");
+				printf("ERROR: EMMC ACMD41 returned error: 0x%x\n", sd_error);
 				return sd_error;
 			}
 		}
