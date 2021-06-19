@@ -211,7 +211,6 @@ namespace Armaz::Interrupts {
 	void InterruptHandler() {
 		unsigned iar = read32(GICC_IAR);
 		unsigned irq = iar & GICC_IAR_INTERRUPT_ID__MASK;
-		printf("[[IRQ: %u]]\n", irq);
 		if (irq < IRQ_LINES) {
 			if (15 < irq) {
 				callIRQHandler(irq);
