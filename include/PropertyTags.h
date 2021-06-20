@@ -23,6 +23,41 @@ namespace Armaz {
 		uint32_t board;
 	} __attribute__((packed));
 
+	struct PropertyTagGPIOState {
+		PropertyTag tag;
+		uint32_t gpio;
+		uint32_t state;
+	} __attribute__((packed));
+
+	constexpr uint32_t EXP_GPIO_BASE = 128;
+	constexpr uint32_t EXP_GPIO_NUM  = 8;
+
+	struct PropertyTagPowerState {
+		PropertyTag tag;
+		uint32_t deviceID;
+		uint32_t state;
+	} __attribute__((packed));
+
+	constexpr uint32_t DEVICE_ID_SD_CARD     = 0;
+	constexpr uint32_t DEVICE_ID_USB_HCD     = 3;
+	constexpr uint32_t POWER_STATE_OFF       = 0 << 0;
+	constexpr uint32_t POWER_STATE_ON        = 1 << 0;
+	constexpr uint32_t POWER_STATE_WAIT      = 1 << 1;
+	constexpr uint32_t POWER_STATE_NO_DEVICE = 1 << 1; // in response
+
+	struct PropertyTagClockRate {
+		PropertyTag tag;
+		uint32_t clockID;
+		uint32_t rate; // in Hz
+	} __attribute__((packed));
+
+	constexpr uint32_t CLOCK_ID_EMMC      =  1;
+	constexpr uint32_t CLOCK_ID_UART      =  2;
+	constexpr uint32_t CLOCK_ID_ARM       =  3;
+	constexpr uint32_t CLOCK_ID_CORE      =  4;
+	constexpr uint32_t CLOCK_ID_EMMC2     = 12;
+	constexpr uint32_t CLOCK_ID_PIXEL_BVB = 14;
+
 	namespace PropertyTags {
 		bool getTag(uint32_t id, void *tag, uint32_t tag_size, uint32_t requested_param_size = 0);
 		bool getTags(void *tags, uint32_t tags_size);

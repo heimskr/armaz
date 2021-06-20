@@ -39,4 +39,7 @@ namespace Armaz {
 	void invalidateInstructionCache();
 	void instructionSyncBarrier();
 	void syncDataAndInstructionCache();
+
+#define peripheralEntry()
+#define peripheralExit()
 }

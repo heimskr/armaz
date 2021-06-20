@@ -22,6 +22,8 @@ namespace Armaz::Timers {
 	 *  actual desired frequency. Probably has something to do with the clock's 54 MHz frequency. */
 	constexpr unsigned HZ = 540;
 
+	constexpr unsigned CLOCKHZ = 1'000'000;
+
 	/** See the documentation for the ARM side timer (Section 14 of the BCM2835 Peripherals PDF) */
 	constexpr ptrdiff_t ARMTIMER_BASE = 0xb400;
 
@@ -49,6 +51,7 @@ namespace Armaz::Timers {
 
 	uint64_t getSystemTimer();
 	void waitMicroseconds(size_t);
+	unsigned getClockTicks();
 
 	class Timer {
 		private:

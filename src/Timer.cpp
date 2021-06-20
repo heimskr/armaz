@@ -18,6 +18,7 @@
 #include "MMIO.h"
 #include "printf.h"
 #include "Timer.h"
+#include "Synchronize.h"
 
 namespace Armaz::Timers {
 	Timer timer;
@@ -43,20 +44,35 @@ namespace Armaz::Timers {
 		while (getSystemTimer() < time + count);
 	}
 
+	unsigned getClockTicks (void) {
+#ifndef USE_PHYSICAL_COUNTER
+		peripheralEntry();
+		unsigned result = MMIO::read(TIMER_CLO);
+		peripheralExit();
+		return result;
+#else
+		instructionSyncBarrier();
+		uint64_t cntpct, cntfrq;
+		asm volatile("mrs %0, cntpct_el0" : "=r"(cntpct));
+		asm volatile("mrs %0, cntfrq_el0" : "=r"(cntfrq));
+		return static_cast<unsigned>(cntpct * CLOCKHZ / cntfrq);
+#endif
+	}
+
 	void Timer::init(bool /* calibrate */) {
 		if (connected)
 			return;
 		connected = true;
 		Interrupts::connect(ARM_IRQLOCAL0_CNTPNS, handler, this);
 		uint64_t cntfrq;
-		asm volatile("mrs %0, CNTFRQ_EL0" : "=r"(cntfrq));
+		asm volatile("mrs %0, cntfrq_el0" : "=r"(cntfrq));
 		assert(cntfrq % HZ == 0);
 		clockTicksPerHzTick = cntfrq / HZ;
 
 		uint64_t cntpct;
-		asm volatile("mrs %0, CNTPCT_EL0" : "=r"(cntpct));
-		asm volatile("msr CNTP_CVAL_EL0, %0" :: "r"(cntpct + clockTicksPerHzTick));
-		asm volatile("msr CNTP_CTL_EL0, %0" :: "r"(1));
+		asm volatile("mrs %0, cntpct_el0" : "=r"(cntpct));
+		asm volatile("msr cntp_cval_el0, %0" :: "r"(cntpct + clockTicksPerHzTick));
+		asm volatile("msr cntp_ctl_el0, %0" :: "r"(1));
 	}
 
 	void Timer::handler() {

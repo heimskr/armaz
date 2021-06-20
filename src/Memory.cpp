@@ -191,13 +191,15 @@ namespace Armaz::Memory {
 }
 
 extern "C" void * malloc(size_t size) {
-// #ifdef DEBUG_ALLOCATION
+#ifdef DEBUG_ALLOCATION
 	printf("malloc(0x%lx)\n", size);
-// #endif
+#endif
 	if (global_memory == nullptr)
 		return nullptr;
 	auto result = global_memory->allocate(size);
+#ifdef DEBUG_ALLOCATION
 	printf("malloc complete: 0x%llx\n", result);
+#endif
 	return result;
 }
 
