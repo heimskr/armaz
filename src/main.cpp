@@ -15,6 +15,7 @@
 #include "storage/EMMC.h"
 #include "storage/GPT.h"
 #include "storage/MBR.h"
+#include "storage/Partition.h"
 
 #include <string>
 #include <vector>
@@ -72,6 +73,14 @@ extern "C" void main() {
 			Log::error("Failed to read from EMMCDevice.\n");
 		} else {
 			mbr.debug();
+			Partition partition(device, mbr.firstEntry);
+			uint8_t buffer[512];
+			partition.read(buffer, sizeof(buffer), 0);
+			for (size_t i = 0; i < sizeof(buffer); ++i) {
+				printf("%02x", buffer[i]);
+				if (i % 64 == 63)
+					UART::write('\n');
+			}
 		}
 	} else
 		Log::error("Failed to initialize EMMCDevice.");

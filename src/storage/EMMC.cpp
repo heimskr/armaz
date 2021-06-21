@@ -36,6 +36,7 @@
 
 #include "assert.h"
 #include "Log.h"
+#include "util.h"
 #include "aarch64/MMIO.h"
 #include "aarch64/Synchronize.h"
 #include "aarch64/Timer.h"
@@ -503,7 +504,6 @@ namespace Armaz {
 		host.reset();
 #endif
 		delete sdConfig;
-		// delete partitionManager;
 	}
 
 	bool EMMCDevice::initialize() {
@@ -688,7 +688,7 @@ namespace Armaz {
 #endif
 	}
 
-	// Switch the clock rate whilst running
+	// Switch the clock rate while running
 	bool EMMCDevice::switchClockRate(uint32_t base_clock, uint32_t target_rate) {
 		// Decide on an appropriate divider
 		uint32_t divider = getClockDivider(base_clock, target_rate);
@@ -801,7 +801,7 @@ namespace Armaz {
 		// Test for errors
 		if ((irpts & 0xffff0001) != 1) {
 #ifdef EMMC_DEBUG2
-			Log::warn("Error occured whilst waiting for command complete interrupt");
+			Log::warn("Error occured while waiting for command complete interrupt");
 #endif
 			lastError = irpts & 0xffff0000;
 			lastInterrupt = irpts;
@@ -831,10 +831,10 @@ namespace Armaz {
 			uint32_t wr_irpt;
 			int is_write = 0;
 			if (cmd_reg & SD_CMD_DAT_DIR_CH) {
-				wr_irpt = (1 << 5);     // read
+				wr_irpt = (1 << 5); // read
 			} else {
 				is_write = 1;
-				wr_irpt = (1 << 4);     // write
+				wr_irpt = (1 << 4); // write
 			}
 
 #ifdef EMMC_DEBUG2
@@ -852,11 +852,10 @@ namespace Armaz {
 
 				if ((irpts & (0xffff0000 | wr_irpt)) != wr_irpt) {
 #ifdef EMMC_DEBUG2
-					Log::warn("Error occured whilst waiting for data ready interrupt");
+					Log::warn("Error occured while waiting for data ready interrupt");
 #endif
 					lastError = irpts & 0xffff0000;
 					lastInterrupt = irpts;
-
 					return;
 				}
 
@@ -895,7 +894,7 @@ namespace Armaz {
 				//  are set - transfer complete overrides data timeout: HCSS 2.2.17
 				if (((irpts & 0xffff0002) != 2) && ((irpts & 0xffff0002) != 0x100002)) {
 #ifdef EMMC_DEBUG
-					Log::warn("Error occured whilst waiting for transfer complete interrupt");
+					Log::warn("Error occured while waiting for transfer complete interrupt");
 #endif
 					lastError = irpts & 0xffff0000;
 					lastInterrupt = irpts;
@@ -2060,7 +2059,89 @@ namespace Armaz {
 		Timers::waitMicroseconds(usec);
 	}
 
-	const uint32_t *EMMCDevice::getID() {
+	const uint32_t * EMMCDevice::getID() {
 		return deviceID;
+	}
+
+	int EMMCDevice::readBytes(void *buffer, size_t bytes, size_t byte_offset) {
+		size_t total_bytes_read = 0;
+		uint32_t lba = byte_offset / SD_BLOCK_SIZE;
+		offset %= SD_BLOCK_SIZE;
+		char read_buffer[SD_BLOCK_SIZE];
+
+		while (0 < bytes) {
+			seek(lba * SD_BLOCK_SIZE);
+			if (read(read_buffer, SD_BLOCK_SIZE) == -1ul)
+				return 1;
+			const size_t to_copy = SD_BLOCK_SIZE - byte_offset < bytes? SD_BLOCK_SIZE - byte_offset : bytes;
+			memcpy(static_cast<char *>(buffer) + total_bytes_read, read_buffer + byte_offset, to_copy);
+			total_bytes_read += to_copy;
+			bytes -= to_copy;
+			byte_offset = 0;
+			++lba;
+		}
+
+		return 0;
+	}
+
+	int EMMCDevice::writeBytes(const void *buffer, size_t bytes, size_t byte_offset) {
+		uint32_t lba = byte_offset / SD_BLOCK_SIZE;
+		byte_offset %= SD_BLOCK_SIZE;
+
+		if (bytes % SD_BLOCK_SIZE == 0 && byte_offset == 0) {
+			seek(lba * SD_BLOCK_SIZE);
+			return write(buffer, bytes);
+		}
+
+		char write_buffer[SD_BLOCK_SIZE] = {0};
+		const char *cbuffer = static_cast<const char *>(buffer);
+
+		if (byte_offset != 0) {
+			seek(lba * SD_BLOCK_SIZE);
+			if (read(write_buffer, SD_BLOCK_SIZE) == -1ul)
+				return 1;
+			const size_t to_write = (SD_BLOCK_SIZE - byte_offset) < bytes? SD_BLOCK_SIZE - byte_offset : bytes;
+			memcpy(write_buffer + byte_offset, buffer, to_write);
+			if (write(write_buffer, SD_BLOCK_SIZE) == -1ul)
+				return 1;
+			bytes -= to_write;
+			++lba;
+			cbuffer += to_write;
+		}
+
+		while (0 < bytes) {
+			if (bytes < SD_BLOCK_SIZE) {
+				seek(lba * SD_BLOCK_SIZE);
+				if (read(write_buffer, SD_BLOCK_SIZE) == -1ul)
+					return 1;
+				memcpy(write_buffer, cbuffer, bytes);
+				if (write(write_buffer, SD_BLOCK_SIZE) == -1ul)
+					return 1;
+				break;
+			} else {
+				seek(lba * SD_BLOCK_SIZE);
+				if (write(cbuffer, SD_BLOCK_SIZE) == -1ul)
+					return 1;
+				bytes -= SD_BLOCK_SIZE;
+				cbuffer += SD_BLOCK_SIZE;
+			}
+			++lba;
+		}
+
+		return 0;
+	}
+
+	int EMMCDevice::read(void *buffer, size_t bytes, size_t byte_offset) {
+		if (byte_offset % SD_BLOCK_SIZE)
+			return readBytes(buffer, bytes, byte_offset);
+		seek(byte_offset);
+		return read(buffer, bytes);
+	}
+
+	int EMMCDevice::write(const void *buffer, size_t bytes, size_t byte_offset) {
+		if (byte_offset % SD_BLOCK_SIZE)
+			return writeBytes(buffer, bytes, byte_offset);
+		seek(byte_offset);
+		return write(buffer, bytes);
 	}
 }

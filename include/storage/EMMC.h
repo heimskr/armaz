@@ -32,6 +32,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "storage/StorageDevice.h"
+
 namespace Armaz {
 	struct SDConfiguration {
 		uint32_t scr[2];
@@ -39,10 +41,10 @@ namespace Armaz {
 		int	sdVersion;
 	};
 
-	class EMMCDevice {
+	class EMMCDevice: public StorageDevice {
 		public:
 			EMMCDevice();
-			~EMMCDevice();
+			virtual ~EMMCDevice();
 
 			bool initialize();
 
@@ -50,6 +52,9 @@ namespace Armaz {
 			size_t write(const void *buffer, size_t count);
 
 			uint64_t seek(uint64_t offset);
+
+			virtual int read(void *buffer, size_t size, size_t offset) override;
+			virtual int write(const void *buffer, size_t bytes, size_t byte_offset) override;
 
 			const uint32_t * getID();
 
@@ -86,8 +91,6 @@ namespace Armaz {
 #endif
 
 			void usDelay(unsigned usec);
-
-		private:
 
 #ifndef USE_SDHOST
 #if RASPPI == 3
@@ -144,5 +147,8 @@ namespace Armaz {
 #endif
 			static const uint32_t sdCommands[];
 			static const uint32_t sdACommands[];
+
+			int readBytes(void *buffer, size_t bytes, size_t byte_offset);
+			int writeBytes(const void *buffer, size_t bytes, size_t byte_offset);
 	};
 }
