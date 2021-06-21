@@ -45,7 +45,7 @@ extern "C" void main() {
 #endif
 
 	Interrupts::init();
-	Timers::timer.init();
+	// Timers::timer.init();
 
 	PropertyTagMemory mem;
 	if (PropertyTags::getTag(PROPTAG_GET_ARM_MEMORY, &mem, sizeof(mem))) {

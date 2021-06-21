@@ -4,6 +4,7 @@
 
 #include "assert.h"
 #include "Memory.h"
+#include "util.h"
 #include "aarch64/Synchronize.h"
 #include "board/BCM2835.h"
 #include "lib/printf.h"

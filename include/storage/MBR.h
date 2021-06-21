@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "util.h"
+
 namespace Armaz {
 	struct CHS {
 		uint8_t heads: 8;

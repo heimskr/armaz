@@ -1032,43 +1032,43 @@ namespace Armaz {
 			return;
 		}
 
-		mmc_command Cmd;
-		memset(&Cmd, 0, sizeof Cmd);
-		Cmd.opcode = cmd_reg >> 24;
-		Cmd.arg = argument;
+		mmc_command cmd;
+		memset(&cmd, 0, sizeof(cmd));
+		cmd.opcode = cmd_reg >> 24;
+		cmd.arg = argument;
 
 		switch (cmd_reg & SD_CMD_RSPNS_TYPE_MASK) {
 			case SD_CMD_RSPNS_TYPE_48:
-				Cmd.flags |= MMC_RSP_PRESENT;
+				cmd.flags |= MMC_RSP_PRESENT;
 				break;
 
 			case SD_CMD_RSPNS_TYPE_48B:
-				Cmd.flags |= MMC_RSP_PRESENT | MMC_RSP_BUSY;
+				cmd.flags |= MMC_RSP_PRESENT | MMC_RSP_BUSY;
 				break;
 
 			case SD_CMD_RSPNS_TYPE_136:
-				Cmd.flags |= MMC_RSP_PRESENT | MMC_RSP_136;
+				cmd.flags |= MMC_RSP_PRESENT | MMC_RSP_136;
 				break;
 		}
 
 		if (cmd_reg & SD_CMD_CRCCHK_EN)
-			Cmd.flags |= MMC_RSP_CRC;
+			cmd.flags |= MMC_RSP_CRC;
 
-		mmc_data Data;
+		mmc_data data;
 		if (cmd_reg & SD_CMD_ISDATA) {
-			memset(&Data, 0, sizeof Data);
-			Data.flags |= cmd_reg & SD_CMD_DAT_DIR_CH ? MMC_DATA_READ : MMC_DATA_WRITE;
-			Data.blksz = blockSize;
-			Data.blocks = blocksToTransfer;
-			Data.sg = buf;
-			Data.sg_len = blockSize * blocksToTransfer;
-			Cmd.data = &Data;
+			memset(&data, 0, sizeof(data));
+			data.flags |= cmd_reg & SD_CMD_DAT_DIR_CH? MMC_DATA_READ : MMC_DATA_WRITE;
+			data.blksz = blockSize;
+			data.blocks = blocksToTransfer;
+			data.sg = buf;
+			data.sg_len = blockSize * blocksToTransfer;
+			cmd.data = &data;
 		}
 
-		int nError = host.Command(&Cmd, 0);
-		if (nError != 0) {
-			assert(nError < 0);
-			lastError = -nError;
+		int error = host.Command(&Cmd, 0);
+		if (error != 0) {
+			assert(error < 0);
+			lastError = -error;
 			return;
 		}
 
@@ -2132,14 +2132,14 @@ namespace Armaz {
 	}
 
 	int EMMCDevice::read(void *buffer, size_t bytes, size_t byte_offset) {
-		if (byte_offset % SD_BLOCK_SIZE)
+		if (byte_offset % SD_BLOCK_SIZE || bytes % SD_BLOCK_SIZE)
 			return readBytes(buffer, bytes, byte_offset);
 		seek(byte_offset);
 		return read(buffer, bytes);
 	}
 
 	int EMMCDevice::write(const void *buffer, size_t bytes, size_t byte_offset) {
-		if (byte_offset % SD_BLOCK_SIZE)
+		if (byte_offset % SD_BLOCK_SIZE || bytes % SD_BLOCK_SIZE)
 			return writeBytes(buffer, bytes, byte_offset);
 		seek(byte_offset);
 		return write(buffer, bytes);

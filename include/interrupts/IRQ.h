@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-extern uint64_t lastlink;
+extern uint64_t lastlink, lastframe;
 
 namespace Armaz {
 	struct IRQs {

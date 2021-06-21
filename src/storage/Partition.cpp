@@ -10,10 +10,7 @@
 
 namespace Armaz {
 	Partition::Partition(StorageDevice &parent_, const MBREntry &entry):
-		Partition(parent_, entry.startLBA * 512ul, entry.sectors * 512ul) {
-		const_cast<MBREntry &>(entry).debug();
-		printf("offset = %llu, length = %llu, entry.sectors = %llu\n", offset, length, entry.sectors);
-	}
+		Partition(parent_, entry.startLBA * 512ul, entry.sectors * 512ul) {}
 
 	int Partition::read(void *buffer, size_t size, size_t byte_offset) {
 		// readRecords.emplace_back(size, offset);

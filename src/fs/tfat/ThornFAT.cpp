@@ -1064,6 +1064,7 @@ namespace Armaz::ThornFAT {
 			partition->write(zeros, 512, position);
 			position += 512;
 			remaining -= 512;
+			DBGN("initFAT", "Remaining:", remaining);
 		}
 
 		partition->write(zeros, remaining, position);
@@ -1731,6 +1732,8 @@ namespace Armaz::ThornFAT {
 			DBGF("make", "Table size too large: %u", table_size);
 			return false;
 		}
+
+
 
 		superblock = {
 			.magic = MAGIC,

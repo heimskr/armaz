@@ -79,6 +79,11 @@ vectors:
 .macro stub name, exception
 .global \name
 \name:
+	ldr x0, =lastlink
+	str x30, [x0]
+	ldr x0, =lastframe
+	str x29, [x0]
+
 	mrs	x0, esr_el1
 	mrs	x1, spsr_el1
 	mov	x2, x30 /* lr */
@@ -119,6 +124,13 @@ stub _ZN5Armaz10Interrupts10SErrorStubEv,      2
 
 .global _ZN5Armaz10Interrupts7IRQStubEv
 _ZN5Armaz10Interrupts7IRQStubEv:
+	str x0, [sp, #-16]!
+	ldr x0, =lastlink
+	str x30, [x0]
+	ldr x0, =lastframe
+	str x29, [x0]
+	ldr x0, [sp], #16
+
 	stp	x29, x30, [sp, #-16]! // save x29, x30 onto stack
 
 	mrs	x29, elr_el1 // save elr_el1, spsr_el1 onto stack
@@ -159,15 +171,18 @@ _ZN5Armaz10Interrupts7IRQStubEv:
 	stp	x3, x4, [sp, #-16]!
 	stp	x1, x2, [sp, #-16]!
 	str	x0, [sp, #-16]!
-
-	ldr x0, =lastlink
-	str x30, [x0]
+	mov x0, #0x3210
+	movk x0, #0x7654, lsl #16
+	movk x0, #0xba98, lsl #32
+	movk x0, #0xfedc, lsl #48
+	str x0, [sp, #-16]!
 
 	ldr	x0, =IRQReturnAddress // store return address for profiling
 	str	x29, [x0]
 
 	bl _ZN5Armaz10Interrupts16InterruptHandlerEv
 
+	ldr x0, [sp], #16
 	ldr	x0, [sp], #16 // restore x0-x28 from stack
 	ldp	x1, x2, [sp], #16
 	ldp	x3, x4, [sp], #16
@@ -323,6 +338,9 @@ IRQReturnAddress: .quad 0
 
 .global lastlink
 lastlink: .quad 0
+
+.global lastframe
+lastframe: .quad 0
 
 .bss
 

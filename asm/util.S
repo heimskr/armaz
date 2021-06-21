@@ -23,34 +23,34 @@
 
 .text
 
-.global memcpy
-memcpy:
-	mov	x8, x0
+// .global memcpy
+// memcpy:
+// 	mov	x8, x0
 
-	cmp	x2, #127
-	b.ls 2f
-	tst	x1, #7
-	b.ne 2f
-	tst	x1, #7
-	b.ne 2f
+// 	cmp	x2, #127
+// 	b.ls 2f
+// 	tst	x1, #7
+// 	b.ne 2f
+// 	tst	x1, #7
+// 	b.ne 2f
 
-	mov	x3, #64
-1:	ldp	x4, x5, [x1], #16
-	ldp	x6, x7, [x1], #16
-	sub	x2, x2, #32
-	stp	x4, x5, [x0], #16
-	stp	x6, x7, [x0], #16
-	prfm pldl1strm, [x1, x3]
-	cmp	x2, #32-1
-	b.hi 1b
+// 	mov	x3, #64
+// 1:	ldp	x4, x5, [x1], #16
+// 	ldp	x6, x7, [x1], #16
+// 	sub	x2, x2, #32
+// 	stp	x4, x5, [x0], #16
+// 	stp	x6, x7, [x0], #16
+// 	prfm pldl1strm, [x1, x3]
+// 	cmp	x2, #32-1
+// 	b.hi 1b
 
-2:	cmp	x2, #0
-	b.eq 4f
+// 2:	cmp	x2, #0
+// 	b.eq 4f
 
-3:	ldrb w3, [x1], #1
-	subs x2,  x2,  #1
-	strb w3, [x0], #1
-	b.ne 3b
+// 3:	ldrb w3, [x1], #1
+// 	subs x2,  x2,  #1
+// 	strb w3, [x0], #1
+// 	b.ne 3b
 
-4:	mov	x0, x8
-	ret
+// 4:	mov	x0, x8
+// 	ret

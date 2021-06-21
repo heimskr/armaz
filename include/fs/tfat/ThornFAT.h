@@ -55,7 +55,7 @@ namespace Armaz::ThornFAT {
 		/** Length of the directory entry in bytes. For directories, 0 -> free. */
 		size_t length = 0;
 		/** 0 if free, -1 if invalid. */
-		block_t startBlock = {-1};
+		block_t startBlock = -1;
 		FileType type = FileType::File;
 		mode_t modes = 0;
 		char padding[16] = {0}; // update if THORNFAT_PATH_MAX changes so that sizeof(DirEntry) is a multiple of 64

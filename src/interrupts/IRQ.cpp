@@ -192,6 +192,7 @@ namespace Armaz::Interrupts {
 			printf("[ x%-2u 0x%llx ]\n", i, eh_regs[i]);
 
 		uint64_t lr = eh_regs[29];
+		// uint64_t lr = lastlink;
 		for (int i = 0; i < 10; ++i) {
 			printf("[ 0 0x%llx ]\n", *(volatile uint64_t *) lr);
 			printf("[ 1 0x%llx ]\n", *((volatile uint64_t *) lr + 1));

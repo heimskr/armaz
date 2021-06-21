@@ -19,13 +19,37 @@
 // #include "Kernel.h"
 
 #include <stddef.h>
+#include <stdint.h>
+
+#define CAREFUL_MEMSET
 
 using op_t = unsigned long long int;
 
 extern "C" void * memset(void *dstpp, int c, size_t len) {
-	// if ((uintptr_t) dstpp == 0x14b4000)
-	// 	Thorn::Kernel::backtrace();
+#ifdef CAREFUL_MEMSET
+	char *dest = reinterpret_cast<char *>(dstpp);
+	while (reinterpret_cast<uintptr_t>(dest) % 8 && len) {
+		*dest++ = c;
+		--len;
+	}
 
+	if (8 <= len) {
+		size_t c8 = c;
+		c8 |= c8 << 8;
+		c8 |= c8 << 16;
+		c8 |= c8 << 32;
+		uint64_t *dest8 = reinterpret_cast<uint64_t *>(dest);
+		while (8 <= len) {
+			*dest8++ = c8;
+			len -= 8;
+		}
+
+		dest = reinterpret_cast<char *>(dest8);
+	}
+
+	for (size_t i = 0; i < len; ++i)
+		*dest++ = c;
+#else
 	long int dstp = (long int) dstpp;
 	if (len >= 8) {
 		size_t xlen;
@@ -79,6 +103,6 @@ extern "C" void * memset(void *dstpp, int c, size_t len) {
 		++dstp;
 		--len;
 	}
-
+#endif
 	return dstpp;
 }

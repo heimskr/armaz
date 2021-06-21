@@ -1,6 +1,7 @@
 // Credit: https://github.com/rsta2/circle/blob/master/lib/memory64.cpp
 
 #include "Memory.h"
+#include "util.h"
 #include "lib/printf.h"
 
 // #define DEBUG_ALLOCATION

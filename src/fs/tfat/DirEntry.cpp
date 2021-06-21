@@ -1,3 +1,4 @@
+#include "util.h"
 #include "fs/tfat/ThornFAT.h"
 #include "lib/printf.h"
 
