@@ -466,7 +466,7 @@ namespace Armaz {
 
 #endif
 
-#define SD_BLOCK_SIZE 512
+#define SD_BLOCK_SIZE 512ul
 
 	EMMCDevice::EMMCDevice():
 		offset(0),

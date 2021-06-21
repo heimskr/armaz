@@ -14,7 +14,7 @@ namespace Armaz {
 
 	int Partition::read(void *buffer, size_t size, size_t byte_offset) {
 		// readRecords.emplace_back(size, offset);
-		// printf("\e[32m[read(buffer, %lu, %ld)]\e[0m\n", size, offset);
+		// printf("\e[32m[read(buffer, %lu, %ld)]\e[0m\n", size, byte_offset);
 		if (length < byte_offset + size)
 			Kernel::panic("Read exceeds length (length = %llu, byte_offset = %llu, size = %llu)",
 				length, byte_offset, size);
@@ -27,14 +27,13 @@ namespace Armaz {
 			Kernel::panic("Write exceeds length (length = %llu, byte_offset = %llu, size = %llu)",
 				length, byte_offset, size);
 #ifdef DEBUG_WRITES
-		printf("\e[32m[\e[31mwrite\e[32m(buffer, %lu, %ld)]\e[0m", size, offset);
-		if (size == 320) {
-			printf(":");
-			for (size_t i = 0; i < size; ++i)
-				printf(" %x", ((char *) buffer)[i] & 0xff);
-			printf("\n");
-		} else
-			printf("\n");
+		printf("\e[32m[\e[31mwrite\e[32m(buffer, %lu, %ld)]\e[0m", size, byte_offset);
+		// if (size == 320) {
+		// 	printf(":");
+		// 	for (size_t i = 0; i < size; ++i)
+		// 		printf(" %x", ((char *) buffer)[i] & 0xff);
+		// }
+		printf("\n");
 #endif
 #ifndef VERIFY_WRITES
 		return parent->write(buffer, size, offset + byte_offset);
