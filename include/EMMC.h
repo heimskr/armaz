@@ -77,7 +77,7 @@ namespace Armaz {
 			int cardInit();
 
 			int ensureDataMode();
-			int doDataCommand(int is_write, uint8_t *buf, size_t buf_size, uint32_t block);
+			bool doDataCommand(int is_write, uint8_t *buf, size_t buf_size, uint32_t block);
 			size_t doRead(uint8_t *buf, size_t buf_size, uint32_t block);
 			size_t doWrite(uint8_t *buf, size_t buf_size, uint32_t block);
 

@@ -561,7 +561,7 @@ namespace Armaz {
 	size_t EMMCDevice::write(const void *buffer, size_t count) {
 		if (offset % SD_BLOCK_SIZE != 0)
 			return -1;
-		uint32_t block = offset / SD_BLOCK_SIZE;
+		const uint32_t block = offset / SD_BLOCK_SIZE;
 
 		peripheralEntry();
 
@@ -571,7 +571,6 @@ namespace Armaz {
 		}
 
 		peripheralExit();
-
 		return count;
 	}
 
@@ -1947,21 +1946,21 @@ namespace Armaz {
 		return 0;
 	}
 
-	int EMMCDevice::doDataCommand(int is_write, uint8_t *buffer_, size_t buf_size, uint32_t block) {
+	bool EMMCDevice::doDataCommand(int is_write, uint8_t *buffer_, size_t buf_size, uint32_t block) {
 		// PLSS table 4.20 - SDSC cards use byte addresses rather than block addresses
 		if (!cardSupportsSDHC)
 			block *= SD_BLOCK_SIZE;
 
 		// This is as per HCSS 3.7.2.1
 		if (buf_size < blockSize) {
-			Log::warn("doDataCommand() called with buffer size (%d) less than block size (%d)", buf_size, blockSize);
-			return -1;
+			Log::warn("doDataCommand called with buffer size (%d) less than block size (%d)", buf_size, blockSize);
+			return false;
 		}
 
 		blocksToTransfer = buf_size / blockSize;
 		if (buf_size % blockSize) {
-			Log::warn("doDataCommand() called with buffer size (%d) not an exact multiple of block size (%d)", buf_size, blockSize);
-			return -1;
+			Log::warn("doDataCommand called with buffer size (%d) not an exact multiple of block size (%d)", buf_size, blockSize);
+			return false;
 		}
 
 		buf = buffer_;
@@ -1981,7 +1980,7 @@ namespace Armaz {
 		int retry_count = 0;
 		constexpr int max_retries = 3;
 		while (retry_count < max_retries) {
-			if (issueCommand(command, block, 5000000)) {
+			if (issueCommand(command, block, 5'000'000)) {
 				break;
 			} else {
 				Log::warn("error sending CMD%d", command);
@@ -1996,10 +1995,10 @@ namespace Armaz {
 
 		if (retry_count == max_retries) {
 			cardRCA = CARD_RCA_INVALID;
-			return -1;
+			return false;
 		}
 
-		return 0;
+		return true;
 	}
 
 	size_t EMMCDevice::doRead(uint8_t *buffer_, size_t buf_size, uint32_t block) {
@@ -2011,7 +2010,7 @@ namespace Armaz {
 		Log::info("Reading from block %u", block);
 #endif
 
-		if (doDataCommand(0, buffer_, buf_size, block) < 0)
+		if (!doDataCommand(0, buffer_, buf_size, block))
 			return -1;
 
 #ifdef EMMC_DEBUG2
@@ -2030,7 +2029,7 @@ namespace Armaz {
 		Log::info("Writing to block %u", block);
 #endif
 
-		if (doDataCommand(1, buffer_, buf_size, block) < 0)
+		if (!doDataCommand(1, buffer_, buf_size, block))
 			return -1;
 
 #ifdef EMMC_DEBUG2

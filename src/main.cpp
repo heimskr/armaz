@@ -4,8 +4,10 @@
 #include "EMMC.h"
 #include "GIC.h"
 #include "GIC400.h"
+#include "GPT.h"
 #include "IRQ.h"
 #include "Log.h"
+#include "MBR.h"
 #include "Memory.h"
 #include "MemoryMap.h"
 #include "MMIO.h"
@@ -66,17 +68,11 @@ extern "C" void main() {
 
 	EMMCDevice device;
 	if (device.initialize()) {
-		uint8_t buffer[512];
-		for (size_t i = 0; i < sizeof(buffer); ++i)
-			buffer[i] = 0;
-		if (device.read(buffer, sizeof(buffer)) == -1ul) {
+		MBR mbr;
+		if (device.read(&mbr, sizeof(mbr)) == -1ul) {
 			Log::error("Failed to read from EMMCDevice.\n");
 		} else {
-			for (size_t i = 0; i < sizeof(buffer); ++i) {
-				printf("%02x", buffer[i]);
-				if (i % 64 == 63)
-					UART::write('\n');
-			}
+			mbr.debug();
 		}
 	} else
 		Log::error("Failed to initialize EMMCDevice.");
