@@ -2065,7 +2065,7 @@ namespace Armaz {
 
 	int EMMCDevice::readBytes(void *buffer, size_t bytes, size_t byte_offset) {
 		size_t total_bytes_read = 0;
-		uint32_t lba = byte_offset / SD_BLOCK_SIZE;
+		size_t lba = byte_offset / SD_BLOCK_SIZE;
 		offset %= SD_BLOCK_SIZE;
 		char read_buffer[SD_BLOCK_SIZE];
 
@@ -2085,7 +2085,7 @@ namespace Armaz {
 	}
 
 	int EMMCDevice::writeBytes(const void *buffer, size_t bytes, size_t byte_offset) {
-		uint32_t lba = byte_offset / SD_BLOCK_SIZE;
+		size_t lba = byte_offset / SD_BLOCK_SIZE;
 		byte_offset %= SD_BLOCK_SIZE;
 
 		if (bytes % SD_BLOCK_SIZE == 0 && byte_offset == 0) {
