@@ -9,15 +9,19 @@ extern "C" void * memcpy(void *dest, const void *src, size_t n) {
 	char *destc = reinterpret_cast<char *>(dest);
 	const char *srcc = reinterpret_cast<const char *>(src);
 
-	if (destp % 8 != 0 && destp % 8 == srcp % 8)
+	if (destp % 8 != 0 && destp % 8 == srcp % 8) {
+		n -= 8 - (destp % 8);
 		while (destp++ % 8)
 			*destc++ = *srcc++;
-	else if (destp % 4 != 0 && destp % 4 == srcp % 4)
+	} else if (destp % 4 != 0 && destp % 4 == srcp % 4) {
+		n -= 4 - (destp % 4);
 		while (destp++ % 4)
 			*destc++ = *srcc++;
-	else if (destp % 2 != 0 && destp % 2 == srcp % 2)
+	} else if (destp % 2 != 0 && destp % 2 == srcp % 2) {
+		n -= 2 - (destp % 2);
 		while (destp++ % 2)
 			*destc++ = *srcc++;
+	}
 
 	if (destp % 8 == 0 && srcp % 8 == 0) {
 		uint64_t *dest8 = reinterpret_cast<uint64_t *>(destc);
