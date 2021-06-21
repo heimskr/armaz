@@ -25,8 +25,8 @@
  */
 
 #include "Config.h"
-#include "MemoryMap.h"
-#include "SysRegs.h"
+#include "aarch64/SysRegs.h"
+#include "pi/MemoryMap.h"
 
 .macro armv8_switch_to_el1_m, xreg1, xreg2
 	// Initialize Generic Timers

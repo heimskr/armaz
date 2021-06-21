@@ -148,16 +148,26 @@ index 88eb55b1..9d03ca25 100644
  #undef WEOF
  #define WEOF 0xffffffffU
 diff --git a/src/errno/__errno_location.c b/src/errno/__errno_location.c
-index 7f9d6027..17d13563 100644
+index 7f9d6027..f89b37a0 100644
 --- a/src/errno/__errno_location.c
 +++ b/src/errno/__errno_location.c
-@@ -6,4 +6,6 @@ int *__errno_location(void)
- 	return &__pthread_self()->errno_val;
+@@ -1,9 +1,15 @@
+ #include <errno.h>
+ #include "pthread_impl.h"
+ 
++int errno;
++
+ int *__errno_location(void)
+ {
+-	return &__pthread_self()->errno_val;
++	return &errno;
++	// return &__pthread_self()->errno_val;
  }
  
 -weak_alias(__errno_location, ___errno_location);
 +int *___errno_location(void) {
-+	return &__pthread_self()->errno_val;
++	return &errno;
++	// return &__pthread_self()->errno_val;
 +}
 diff --git a/src/math/__fpclassify.c b/src/math/__fpclassify.c
 index f7c0e2df..a672f2db 100644

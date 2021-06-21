@@ -5,6 +5,7 @@
 #include "aarch64/MMIO.h"
 #include "aarch64/Timer.h"
 #include "board/BCM2836.h"
+#include "fs/tfat/ThornFAT.h"
 #include "interrupts/GIC400.h"
 #include "interrupts/IRQ.h"
 #include "lib/printf.h"
@@ -17,6 +18,7 @@
 #include "storage/MBR.h"
 #include "storage/Partition.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -43,7 +45,7 @@ extern "C" void main() {
 #endif
 
 	Interrupts::init();
-	// Timers::timer.init();
+	Timers::timer.init();
 
 	PropertyTagMemory mem;
 	if (PropertyTags::getTag(PROPTAG_GET_ARM_MEMORY, &mem, sizeof(mem))) {
@@ -73,14 +75,19 @@ extern "C" void main() {
 			Log::error("Failed to read from EMMCDevice.\n");
 		} else {
 			mbr.debug();
-			Partition partition(device, mbr.firstEntry);
-			uint8_t buffer[512];
-			partition.read(buffer, sizeof(buffer), 0);
-			for (size_t i = 0; i < sizeof(buffer); ++i) {
-				printf("%02x", buffer[i]);
-				if (i % 64 == 63)
-					UART::write('\n');
-			}
+			Partition partition(device, mbr.thirdEntry);
+			auto driver = std::make_unique<ThornFAT::ThornFATDriver>(&partition);
+			if (driver->make(sizeof(ThornFAT::DirEntry) * 5)) {
+				Log::success("Made a ThornFAT partition.\n");
+				uint8_t buffer[2048];
+				partition.read(buffer, sizeof(buffer), 0);
+				for (size_t i = 0; i < sizeof(buffer); ++i) {
+					printf("%02x", buffer[i]);
+					if (i % 64 == 63)
+						UART::write('\n');
+				}
+			} else
+				Log::error("Failed to make a ThornFAT partition.\n");
 		}
 	} else
 		Log::error("Failed to initialize EMMCDevice.");

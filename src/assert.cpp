@@ -1,8 +1,6 @@
 #include "assert.h"
-#include "lib/printf.h"
+#include "Kernel.h"
 
 void assertion_failed(const char *expr, const char *file, unsigned line) {
-	printf("Assertion failed on %s:%u: %s\n", file, line, expr);
-	for (;;)
-		asm volatile("wfi");
+	Armaz::Kernel::panic("Assertion failed on %s:%u: %s\n", file, line, expr);
 }

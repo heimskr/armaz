@@ -76,11 +76,13 @@ namespace Armaz::Timers {
 	}
 
 	void Timer::handler() {
-		static unsigned i = 0;
-		printf("Timer. %u\n", ++i);
+		// static unsigned i = 0;
+		// printf("Timer. %u\n", ++i);
+		printf("Timer. 0x%llx\n", lastlink);
+
 		uint64_t cval;
-		asm volatile("mrs %0, CNTP_CVAL_EL0" : "=r"(cval));
-		asm volatile("msr CNTP_CVAL_EL0, %0" :: "r"(cval + clockTicksPerHzTick));
+		asm volatile("mrs %0, cntp_cval_el0" : "=r"(cval));
+		asm volatile("msr cntp_cval_el0, %0" :: "r"(cval + clockTicksPerHzTick));
 	}
 
 	void Timer::handler(void *param) {

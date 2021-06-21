@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+extern uint64_t lastlink;
+
 namespace Armaz {
 	struct IRQs {
 		volatile uint32_t irq0Pending0;

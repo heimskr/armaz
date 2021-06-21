@@ -1,3 +1,4 @@
+#include "Kernel.h"
 #include "storage/MBR.h"
 #include "storage/StorageDevice.h"
 #include "storage/Partition.h"
@@ -9,16 +10,25 @@
 
 namespace Armaz {
 	Partition::Partition(StorageDevice &parent_, const MBREntry &entry):
-		Partition(parent_, entry.startLBA * 512, entry.sectors * 512) {}
+		Partition(parent_, entry.startLBA * 512ul, entry.sectors * 512ul) {
+		const_cast<MBREntry &>(entry).debug();
+		printf("offset = %llu, length = %llu, entry.sectors = %llu\n", offset, length, entry.sectors);
+	}
 
 	int Partition::read(void *buffer, size_t size, size_t byte_offset) {
 		// readRecords.emplace_back(size, offset);
 		// printf("\e[32m[read(buffer, %lu, %ld)]\e[0m\n", size, offset);
+		if (length < byte_offset + size)
+			Kernel::panic("Read exceeds length (length = %llu, byte_offset = %llu, size = %llu)",
+				length, byte_offset, size);
 		return parent->read(buffer, size, offset + byte_offset);
 	}
 
 	int Partition::write(const void *buffer, size_t size, size_t byte_offset) {
 		// writeRecords.emplace_back(size, offset);
+		if (length < byte_offset + size)
+			Kernel::panic("Write exceeds length (length = %llu, byte_offset = %llu, size = %llu)",
+				length, byte_offset, size);
 #ifdef DEBUG_WRITES
 		printf("\e[32m[\e[31mwrite\e[32m(buffer, %lu, %ld)]\e[0m", size, offset);
 		if (size == 320) {

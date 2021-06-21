@@ -20,7 +20,7 @@
 namespace Armaz::Timers {
 	/** When set to 1000, the timer seems to run at 18.5 Hz. This means that this value should be about 54 times the
 	 *  actual desired frequency. Probably has something to do with the clock's 54 MHz frequency. */
-	constexpr unsigned HZ = 540;
+	constexpr unsigned HZ = 10;
 
 	constexpr unsigned CLOCKHZ = 1'000'000;
 

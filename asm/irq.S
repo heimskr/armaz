@@ -1,6 +1,6 @@
 // Credit: https://github.com/s-matyukevich/raspberry-pi-os/blob/master/src/lesson03/src/entry.S
 
-#include "Entry.h"
+#include "aarch64/Entry.h"
 
 // #define SAVE_VFP_REGS_ON_IRQ
 // #define SAVE_VFP_REGS_ON_FIQ
@@ -9,17 +9,17 @@
 
 
 
-.globl _ZN5Armaz3ARM10enableIRQsEv
+.global _ZN5Armaz3ARM10enableIRQsEv
 _ZN5Armaz3ARM10enableIRQsEv:
 	msr daifclr, #2
 	ret
 
-.globl _ZN5Armaz3ARM11disableIRQsEv
+.global _ZN5Armaz3ARM11disableIRQsEv
 _ZN5Armaz3ARM11disableIRQsEv:
 	msr daifset, #2
 	ret
 
-.globl _ZN5Armaz3ARM10initVectorEv
+.global _ZN5Armaz3ARM10initVectorEv
 _ZN5Armaz3ARM10initVectorEv:
 	adr x0, vectors
 	msr vbar_el1, x0
@@ -37,7 +37,7 @@ b \handler
 
 
 .align 11
-.globl vectors 
+.global vectors
 vectors:
 	// from current EL with sp_el0
 	vector	_ZN5Armaz10Interrupts15SynchronousStubEv
@@ -160,6 +160,9 @@ _ZN5Armaz10Interrupts7IRQStubEv:
 	stp	x1, x2, [sp, #-16]!
 	str	x0, [sp, #-16]!
 
+	ldr x0, =lastlink
+	str x30, [x0]
+
 	ldr	x0, =IRQReturnAddress // store return address for profiling
 	str	x29, [x0]
 
@@ -209,7 +212,7 @@ _ZN5Armaz10Interrupts7IRQStubEv:
 	eret
 
 
-.globl _ZN5Armaz10Interrupts7FIQStubEv
+.global _ZN5Armaz10Interrupts7FIQStubEv
 _ZN5Armaz10Interrupts7FIQStubEv:
 #ifdef SAVE_VFP_REGS_ON_FIQ
 	stp	q30, q31, [sp, #-32]!
@@ -308,20 +311,21 @@ HVCStub: // return to EL2h mode
 .data
 
 .align 3
-.globl FIQData
+.global FIQData
 FIQData: // matches TFIQData:
 	.quad 0 // pHandler
 	.quad 0 // pParam
 	.word 0 // nFIQNumber (unused)
 
 .align 3
-.globl IRQReturnAddress
-IRQReturnAddress:
-	.quad 0
+.global IRQReturnAddress
+IRQReturnAddress: .quad 0
+
+.global lastlink
+lastlink: .quad 0
 
 .bss
 
 .align 4
 .space 128
 SMCStack:
-
