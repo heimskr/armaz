@@ -15,8 +15,6 @@
 #include <__memory/pointer_traits.h>
 #include <type_traits>
 
-#include "printf.h"
-
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
 #endif

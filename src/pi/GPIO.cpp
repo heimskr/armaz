@@ -1,5 +1,5 @@
-#include "GPIO.h"
-#include "MMIO.h"
+#include "aarch64/MMIO.h"
+#include "pi/GPIO.h"
 
 namespace Armaz::GPIO {
 	bool call(uint32_t pin_number, uint32_t value, uintptr_t base, uint32_t field_size, uint32_t field_max) {

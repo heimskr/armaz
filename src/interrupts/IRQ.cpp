@@ -1,13 +1,13 @@
 // Credit: https://github.com/rsta2/circle
 
 #include "assert.h"
-#include "BCM2711.h"
-#include "BCM2711int.h"
 #include "Config.h"
-#include "IRQ.h"
-#include "MMIO.h"
-#include "printf.h"
-#include "Synchronize.h"
+#include "aarch64/MMIO.h"
+#include "aarch64/Synchronize.h"
+#include "board/BCM2711.h"
+#include "board/BCM2711int.h"
+#include "interrupts/IRQ.h"
+#include "lib/printf.h"
 
 #define AARCH64_OPCODE_BRANCH(distance) (0x14000000 | (distance))
 #define AARCH64_DISTANCE(from, to) ((uint32_t *) &(to) - (uint32_t *) &(from))

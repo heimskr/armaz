@@ -1,9 +1,9 @@
 // Based on code from https://wiki.osdev.org/Raspberry_Pi_Bare_Bones
 
-#include "ARM.h"
-#include "MMIO.h"
-#include "printf.h"
-#include "RPi.h"
+#include "aarch64/ARM.h"
+#include "aarch64/MMIO.h"
+#include "lib/printf.h"
+#include "pi/RPi.h"
 
 namespace Armaz::MMIO {
 	uintptr_t base = 0;

@@ -1,6 +1,6 @@
-#include "ARM.h"
-#include "MMIO.h"
-#include "printf.h"
+#include "aarch64/ARM.h"
+#include "aarch64/MMIO.h"
+#include "lib/printf.h"
 
 namespace Armaz::ARM {
 	int getEL() {

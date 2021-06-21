@@ -1,8 +1,8 @@
 #include <stddef.h>
 
-#include "GPIO.h"
-#include "MMIO.h"
-#include "UART.h"
+#include "aarch64/MMIO.h"
+#include "pi/GPIO.h"
+#include "pi/UART.h"
 
 namespace Armaz::UART {
 

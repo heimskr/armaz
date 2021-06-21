@@ -13,12 +13,12 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #include "assert.h"
-#include "BCM2711int.h"
-#include "IRQ.h"
-#include "MMIO.h"
-#include "printf.h"
-#include "Timer.h"
-#include "Synchronize.h"
+#include "aarch64/MMIO.h"
+#include "aarch64/Synchronize.h"
+#include "aarch64/Timer.h"
+#include "board/BCM2711int.h"
+#include "interrupts/IRQ.h"
+#include "lib/printf.h"
 
 namespace Armaz::Timers {
 	Timer timer;

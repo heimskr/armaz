@@ -33,18 +33,18 @@
 //
 // Broadcom BCM2835 ARM Peripherals Guide
 //
-#include <assert.h>
 
-#include "BCM2711.h"
-#include "EMMC.h"
+#include "assert.h"
 #include "Log.h"
-#include "MMIO.h"
-#include "RPi.h"
-#include "Synchronize.h"
-#include "Timer.h"
+#include "aarch64/MMIO.h"
+#include "aarch64/Synchronize.h"
+#include "aarch64/Timer.h"
+#include "board/BCM2711.h"
+#include "pi/RPi.h"
+#include "storage/EMMC.h"
 
 #ifndef USE_SDHOST
-#include "PropertyTags.h"
+#include "pi/PropertyTags.h"
 #else
 #include "mmc.h"
 #include "mmcerror.h"
@@ -54,8 +54,8 @@
 // Configuration options
 //
 
-#define EMMC_DEBUG
-//#define EMMC_DEBUG2
+// #define EMMC_DEBUG
+// #define EMMC_DEBUG2
 
 //
 // According to the BCM2835 ARM Peripherals Guide the EMMC STATUS register
@@ -193,47 +193,47 @@
 
 #endif
 
-#define SD_RESP_NONE        SD_CMD_RSPNS_TYPE_NONE
-#define SD_RESP_R1          (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
-#define SD_RESP_R1b         (SD_CMD_RSPNS_TYPE_48B | SD_CMD_CRCCHK_EN)
-#define SD_RESP_R2          (SD_CMD_RSPNS_TYPE_136 | SD_CMD_CRCCHK_EN)
-#define SD_RESP_R3          SD_CMD_RSPNS_TYPE_48
-#define SD_RESP_R4          SD_CMD_RSPNS_TYPE_136
-#define SD_RESP_R5          (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
-#define SD_RESP_R5b         (SD_CMD_RSPNS_TYPE_48B | SD_CMD_CRCCHK_EN)
-#define SD_RESP_R6          (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
-#define SD_RESP_R7          (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
+#define SD_RESP_NONE SD_CMD_RSPNS_TYPE_NONE
+#define SD_RESP_R1   (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
+#define SD_RESP_R1b  (SD_CMD_RSPNS_TYPE_48B | SD_CMD_CRCCHK_EN)
+#define SD_RESP_R2   (SD_CMD_RSPNS_TYPE_136 | SD_CMD_CRCCHK_EN)
+#define SD_RESP_R3   SD_CMD_RSPNS_TYPE_48
+#define SD_RESP_R4   SD_CMD_RSPNS_TYPE_136
+#define SD_RESP_R5   (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
+#define SD_RESP_R5b  (SD_CMD_RSPNS_TYPE_48B | SD_CMD_CRCCHK_EN)
+#define SD_RESP_R6   (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
+#define SD_RESP_R7   (SD_CMD_RSPNS_TYPE_48 | SD_CMD_CRCCHK_EN)
 
-#define SD_DATA_READ        (SD_CMD_ISDATA | SD_CMD_DAT_DIR_CH)
-#define SD_DATA_WRITE       (SD_CMD_ISDATA | SD_CMD_DAT_DIR_HC)
+#define SD_DATA_READ  (SD_CMD_ISDATA | SD_CMD_DAT_DIR_CH)
+#define SD_DATA_WRITE (SD_CMD_ISDATA | SD_CMD_DAT_DIR_HC)
 
-#define SD_CMD_RESERVED(a)  0xffffffff
+#define SD_CMD_RESERVED(a) 0xffffffff
 
 #define FAIL             (lastCmdSuccess == 0)
 
 #ifndef USE_SDHOST
-#define TIMEOUT          (FAIL && (lastError == 0))
-#define CMD_TIMEOUT      (FAIL && (lastError & (1 << 16)))
-#define CMD_CRC          (FAIL && (lastError & (1 << 17)))
-#define CMD_END_BIT      (FAIL && (lastError & (1 << 18)))
-#define CMD_INDEX        (FAIL && (lastError & (1 << 19)))
-#define DATA_TIMEOUT     (FAIL && (lastError & (1 << 20)))
-#define DATA_CRC         (FAIL && (lastError & (1 << 21)))
-#define DATA_END_BIT     (FAIL && (lastError & (1 << 22)))
-#define CURRENT_LIMIT    (FAIL && (lastError & (1 << 23)))
-#define ACMD12_ERROR     (FAIL && (lastError & (1 << 24)))
-#define ADMA_ERROR       (FAIL && (lastError & (1 << 25)))
-#define TUNING_ERROR     (FAIL && (lastError & (1 << 26)))
+#define TIMEOUT       (FAIL && (lastError == 0))
+#define CMD_TIMEOUT   (FAIL && (lastError & (1 << 16)))
+#define CMD_CRC       (FAIL && (lastError & (1 << 17)))
+#define CMD_END_BIT   (FAIL && (lastError & (1 << 18)))
+#define CMD_INDEX     (FAIL && (lastError & (1 << 19)))
+#define DATA_TIMEOUT  (FAIL && (lastError & (1 << 20)))
+#define DATA_CRC      (FAIL && (lastError & (1 << 21)))
+#define DATA_END_BIT  (FAIL && (lastError & (1 << 22)))
+#define CURRENT_LIMIT (FAIL && (lastError & (1 << 23)))
+#define ACMD12_ERROR  (FAIL && (lastError & (1 << 24)))
+#define ADMA_ERROR    (FAIL && (lastError & (1 << 25)))
+#define TUNING_ERROR  (FAIL && (lastError & (1 << 26)))
 #else
-#define TIMEOUT          (FAIL && (lastError == ETIMEDOUT))
+#define TIMEOUT (FAIL && (lastError == ETIMEDOUT))
 #endif
 
-#define SD_VER_UNKNOWN      0
-#define SD_VER_1            1
-#define SD_VER_1_1          2
-#define SD_VER_2            3
-#define SD_VER_3            4
-#define SD_VER_4            5
+#define SD_VER_UNKNOWN 0
+#define SD_VER_1       1
+#define SD_VER_1_1     2
+#define SD_VER_2       3
+#define SD_VER_3       4
+#define SD_VER_4       5
 
 namespace Armaz {
 	const char *EMMCDevice::sdVersions[] = {

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "MemoryMap.h"
+#include "pi/MemoryMap.h"
 
 // Credit: https://github.com/rsta2/circle/blob/master/include/circle/memory.h
 

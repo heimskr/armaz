@@ -1,5 +1,5 @@
-#include "MBR.h"
-#include "printf.h"
+#include "lib/printf.h"
+#include "storage/MBR.h"
 
 namespace Armaz {
 	void MBREntry::debug() {

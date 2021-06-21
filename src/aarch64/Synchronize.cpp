@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include "Synchronize.h"
+#include "aarch64/Synchronize.h"
 
 namespace Armaz {
 	void dataMemBarrier() {

@@ -1,6 +1,6 @@
-#include "GPT.h"
-#include "printf.h"
-#include "UART.h"
+#include "lib/printf.h"
+#include "pi/UART.h"
+#include "storage/GPT.h"
 
 namespace Armaz::GPT {
 	void GUID::print(bool newline) {

@@ -1,7 +1,7 @@
 #include "assert.h"
-#include "Mailbox.h"
-#include "MMIO.h"
-#include "printf.h"
+#include "aarch64/MMIO.h"
+#include "lib/printf.h"
+#include "pi/Mailbox.h"
 
 #define STATUS_OFFSET(box) ((box) == 1? 0x38 : 0x18)
 #define RW_OFFSET(box)     ((box) == 1? 0x20 : 0x00)

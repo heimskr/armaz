@@ -3,12 +3,12 @@
 #include <string.h>
 
 #include "assert.h"
-#include "BCM2835.h"
-#include "Mailbox.h"
 #include "Memory.h"
-#include "printf.h"
-#include "PropertyTags.h"
-#include "Synchronize.h"
+#include "aarch64/Synchronize.h"
+#include "board/BCM2835.h"
+#include "lib/printf.h"
+#include "pi/Mailbox.h"
+#include "pi/PropertyTags.h"
 
 namespace Armaz::PropertyTags {
 	struct PropertyBuffer {

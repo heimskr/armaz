@@ -1,6 +1,6 @@
 #include "Log.h"
-#include "printf.h"
-#include "UART.h"
+#include "lib/printf.h"
+#include "pi/UART.h"
 
 namespace Armaz::Log {
 	void error(const char *format, ...) {

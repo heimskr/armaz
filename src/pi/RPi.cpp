@@ -1,4 +1,4 @@
-#include "RPi.h"
+#include "pi/RPi.h"
 
 namespace Armaz::RPi {
 	int getModel() {
