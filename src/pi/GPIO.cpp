@@ -1,3 +1,5 @@
+// Credit: https://isometimes.github.io/rpi4-osdev/part3-helloworld/
+
 #include "aarch64/MMIO.h"
 #include "pi/GPIO.h"
 

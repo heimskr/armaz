@@ -110,8 +110,11 @@ namespace Armaz::Interrupts {
 	}
 
 	void enable(unsigned irq) {
+		// printf("[%s:%d] irq = %u\n", __FILE__, __LINE__, irq);
 		assert(irq < IRQ_LINES);
+		// printf("write32(0x%llx, 0x%llx)\n", GICD_ISENABLER0 + 4 * (irq / 32), 1l << (irq % 32));
 		write32(GICD_ISENABLER0 + 4 * (irq / 32), 1 << (irq % 32));
+		// printf("[%s:%d]\n", __FILE__, __LINE__);
 	}
 
 	void disconnect(unsigned irq) {

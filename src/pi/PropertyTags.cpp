@@ -20,7 +20,7 @@ namespace Armaz::PropertyTags {
 
 	constexpr uint32_t CODE_REQUEST          = 0x00000000;
 	constexpr uint32_t CODE_RESPONSE_SUCCESS = 0x80000000;
-	constexpr uint32_t CODE_RESPONSE_FAILURE = 0x80000001;
+	// constexpr uint32_t CODE_RESPONSE_FAILURE = 0x80000001;
 
 	bool getTag(uint32_t id, void *tag, uint32_t tag_size, uint32_t requested_param_size) {
 		assert(tag);

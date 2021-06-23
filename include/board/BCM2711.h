@@ -19,7 +19,7 @@
 //
 #pragma once
 
-#define ARM_IO_BASE 0xfe000000
+#define ARM_IO_BASE 0xfe000000ul
 
 // External Mass Media Controller 2 (SD Card)
 #define ARM_EMMC2_BASE (ARM_IO_BASE + 0x340000)
@@ -28,18 +28,18 @@
 #define ARM_HW_RNG200_BASE (ARM_IO_BASE + 0x104000)
 
 // Generic Interrupt Controller (GIC-400)
-#define ARM_GICD_BASE 0xff841000
-#define ARM_GICC_BASE 0xff842000
-#define ARM_GIC_END   0xff847fff
+#define ARM_GICD_BASE 0xff841000ul
+#define ARM_GICC_BASE 0xff842000ul
+#define ARM_GIC_END   0xff847ffful
 
 // BCM54213PE Gigabit Ethernet Transceiver (external)
-#define ARM_BCM54213_BASE 0xfd580000
+#define ARM_BCM54213_BASE 0xfd580000ul
 #define ARM_BCM54213_MDIO     (ARM_BCM54213_BASE + 0x0e14)
 #define ARM_BCM54213_MDIO_END (ARM_BCM54213_BASE + 0x0e1b)
 #define ARM_BCM54213_END      (ARM_BCM54213_BASE + 0xffff)
 
 // PCIe Host Bridge
-#define ARM_PCIE_HOST_BASE 0xfd500000
+#define ARM_PCIE_HOST_BASE 0xfd500000ul
 #define ARM_PCIE_HOST_END  (ARM_PCIE_HOST_BASE + 0x930f)
 
 // xHCI USB Host Controller

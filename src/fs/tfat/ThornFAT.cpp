@@ -29,46 +29,59 @@ namespace Armaz::ThornFAT {
 	int ThornFATDriver::find(fd_t fd, const char *path, DirEntry *out, off_t *offset, bool get_parent,
 	                         std::string *last_name) {
 		ENTER;
+		REPORT;
 
 		if (!FD_VALID(fd) && !path) {
+			REPORT;
 			WARNS(FATFINDH, "Both search types are unspecified.");
 			EXIT;
 			return -EINVAL;
 		}
 
+		REPORT;
 #ifndef DEBUG_FATFIND
 	METHOD_OFF(INDEX_FATFIND);
 #endif
 
 		if (strcmp(path, "/") == 0 || strlen(path) == 0) {
+			REPORT;
 			// For the special case of "/" or "" (maybe that last one should be invalid...), return the root directory.
 			DirEntry &rootdir = getRoot(offset);
 			if (out)
 				*out = rootdir;
 
+			REPORT;
 			DBGF(FATFINDH, "Returning the root: %s", std::string(rootdir).c_str());
 			FF_EXIT;
+			REPORT;
 			return 0;
 		}
 
+		REPORT;
 		size_t count;
 		size_t i;
 		bool at_end;
+		REPORT;
 
 		std::vector<DirEntry> entries;
 		std::vector<off_t> offsets;
 		std::string newpath, remaining = path;
 
+		REPORT;
 		// Start at the root.
 		DirEntry dir = getRoot();
 		off_t dir_offset = superblock.startBlock * superblock.blockSize;
+		REPORT;
 
 		bool done = false;
 
+		REPORT;
 		do {
+			REPORT;
 			std::optional<std::string> search = Util::pathFirst(remaining, &newpath);
 			remaining = newpath;
 			at_end = newpath.empty() || !search.has_value();
+			REPORT;
 
 			if (at_end && get_parent) {
 				// We just want the containing directory, thank you very much.
@@ -84,28 +97,34 @@ namespace Armaz::ThornFAT {
 				FF_EXIT;
 				return 0;
 			}
+			REPORT;
 
 			if (!search.has_value()) {
 				FF_EXIT;
 				return -ENOENT;
 			}
+			REPORT;
 
 			int status = readDir(dir, entries, &offsets);
+			REPORT;
 			count = entries.size();
 			if (status < 0) {
 				WARN(FATFINDH, "Couldn't read directory. Status: " BDR " (%s)", status, STRERR(status));
 				FF_EXIT;
 				return status;
 			}
+			REPORT;
 
 			// If we find any matches in the following for loop, this is set to 1.
 			// If it stays 0, there were no (non-free) matches in the directory and the search failed.
 			int found = 0;
 
 			for (i = 0; i < count; i++) {
+				REPORT;
 				DirEntry &entry = entries[i];
 				char *fname = entry.name.str;
 				if (search == fname && !isFree(entry)) {
+					REPORT;
 					if (entry.isFile()) {
 						if (at_end) {
 							// We're at the end of the path and it's a file!
@@ -127,6 +146,7 @@ namespace Armaz::ThornFAT {
 						FF_EXIT;
 						return -ENOTDIR;
 					} else if (at_end) {
+						REPORT;
 						// This is a directory at the end of the path. Success.
 						DBG(FATFINDH, "Returning directory at the end.");
 						DBG2(FATFINDH, "  Name:", entry.name.str);
@@ -139,6 +159,7 @@ namespace Armaz::ThornFAT {
 						FF_EXIT;
 						return 0;
 					}
+					REPORT;
 
 					// This is a directory, but we're not at the end yet. Search within this directory next.
 					dir = entry;
@@ -146,7 +167,9 @@ namespace Armaz::ThornFAT {
 					found = 1;
 					break;
 				}
+				REPORT;
 			}
+			REPORT;
 
 			done = remaining.empty();
 
@@ -156,8 +179,9 @@ namespace Armaz::ThornFAT {
 				FF_EXIT;
 				return -ENOENT;
 			}
+			REPORT;
 		} while (!done);
-
+		REPORT;
 		// It shouldn't be possible to get here.
 		WARNS(FATFINDH, "Reached the end of the function " UDARR " " IDS("EIO"));
 		FF_EXIT;
@@ -1600,8 +1624,11 @@ namespace Armaz::ThornFAT {
 		DirEntry found;
 		off_t file_offset;
 
+		REPORT;
 		int status = find(-1, path, &found, &file_offset);
 		SCHECK(READDIRH, "find failed");
+
+		REPORT;
 
 		if (!found.isDirectory()) {
 			// You can't really use readdir with a file.
@@ -1609,29 +1636,35 @@ namespace Armaz::ThornFAT {
 			DBG_ON();
 			return -ENOTDIR;
 		}
+		REPORT;
 
 		if (!isRoot(found))
 			// Only the root directory has a "." entry stored in the disk image.
 			// For other directories, it has to be added dynamically.
 			filler(".", 0);
 
+		REPORT;
 		DBGF(READDIRH, "Found directory at offset " BLR ": " BSR, file_offset, std::string(found).c_str());
 
 		std::vector<DirEntry> entries;
 		std::vector<off_t> offsets;
 
+		REPORT;
 		status = readDir(found, entries, &offsets);
 		SCHECK(READDIRH, "readDir failed");
 		const size_t count = entries.size();
 		DBGF(READDIRH, "Count: " BULR, count);
+		REPORT;
 
 		size_t excluded = 0;
 #ifdef READDIR_MAX_INCLUDE
 		size_t included = 0;
 		int last_index = -1;
 #endif
+		REPORT;
 
 		for (size_t i = 0; i < count; ++i) {
+			REPORT;
 			const DirEntry &entry = entries[i];
 			DBGF(READDIRH, "[] %s: %s", isFree(entry)? "free" : "not free", std::string(entry).c_str());
 			if (!isFree(entry)) {
@@ -1647,6 +1680,8 @@ namespace Armaz::ThornFAT {
 				excluded++;
 		}
 
+		REPORT;
+
 #ifdef READDIR_MAX_INCLUDE
 		if (READDIR_MAX_INCLUDE < included)
 			DBGF(READDIRH, "... " BULR " more", count - READDIR_MAX_INCLUDE);
@@ -1655,10 +1690,12 @@ namespace Armaz::ThornFAT {
 			DBGF(READDIRH, "Including entry %s at offset %ld.", entries[last_index].name.str, offsets[last_index]);
 #endif
 
+		REPORT;
 		if (0 < excluded) {
 			DBGF(READDIRH, "Excluding " BULR " freed entr%s.", PLURALY(excluded));
 		}
 
+		REPORT;
 		DBGE(READDIRH, "Done.");
 		DBG_ON();
 		return 0;

@@ -6,7 +6,8 @@
 #include <stddef.h>
 
 extern "C" void * memcpy(void *dest, const void *src, size_t n);
-extern "C" void * memset(void *dstpp, int c, size_t len);
+extern "C" void * memset(void *dstpp, int c, size_t n);
+extern "C" void * memmove(void *dest, const void *src, size_t n);
 
 namespace Armaz::Util {
 	// Due to clang shenanigans (or possibly due to my own failings), I can't templatify this and have to duplicate the

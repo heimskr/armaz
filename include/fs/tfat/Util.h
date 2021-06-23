@@ -136,6 +136,7 @@ namespace Armaz::ThornFAT::Util {
 #define S_ERROR   "\e[1;31mX\e[0m "
 
 #define FILELINE __FILE__, __LINE__
+#define REPORT printf("[%s:%d]\n", FILELINE)
 #define BASEINDENT ""
 #define LL BXV
 #define LR BXV
