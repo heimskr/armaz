@@ -8,8 +8,14 @@
 namespace Armaz::MMIO {
 	extern uintptr_t base;
 	void init();
-	uint32_t read(ptrdiff_t reg);
-	void write(ptrdiff_t reg, uint32_t data);
+
+	inline uint32_t read(ptrdiff_t reg) {
+		return *(const volatile uint32_t *) (base + reg);
+	}
+
+	inline void write(ptrdiff_t reg, uint32_t data) {
+		*(volatile uint32_t *) (base + reg) = data;
+	}
 
 	constexpr ptrdiff_t IRQ_BASIC_PENDING  = 0xb200;
 	constexpr ptrdiff_t IRQ_PENDING_1      = 0xb204;
@@ -23,5 +29,10 @@ namespace Armaz::MMIO {
 	constexpr ptrdiff_t DISABLE_BASIC_IRQS = 0xb224;
 }
 
-unsigned read32(uintptr_t addr);
-void write32(uintptr_t addr, uint32_t data);
+inline uint32_t read32(uintptr_t addr) {
+	return *(volatile uint32_t *) addr;
+}
+
+inline void write32(uintptr_t addr, uint32_t data) {
+	*(volatile uint32_t *) addr = data;
+}

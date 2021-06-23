@@ -33,6 +33,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "aarch64/MMIO.h"
 #include "lib/printf.h"
 #include "pi/UART.h"
 
@@ -806,5 +807,11 @@ extern "C" {
 
 	void _putchar(char ch) {
 		Armaz::UART::write((unsigned char) ch);
+
+		// if (ch == '\n')
+		// 	_putchar('\r');
+
+		// while (!(Armaz::MMIO::read(Armaz::UART::AUX_MU_LSR_REG) & 0x20)); 
+		// Armaz::MMIO::write(Armaz::UART::AUX_MU_IO_REG, (uint32_t) ch);
 	}
 }

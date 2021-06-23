@@ -110,11 +110,8 @@ namespace Armaz::Interrupts {
 	}
 
 	void enable(unsigned irq) {
-		// printf("[%s:%d] irq = %u\n", __FILE__, __LINE__, irq);
 		assert(irq < IRQ_LINES);
-		// printf("write32(0x%llx, 0x%llx)\n", GICD_ISENABLER0 + 4 * (irq / 32), 1l << (irq % 32));
 		write32(GICD_ISENABLER0 + 4 * (irq / 32), 1 << (irq % 32));
-		// printf("[%s:%d]\n", __FILE__, __LINE__);
 	}
 
 	void disconnect(unsigned irq) {
@@ -149,16 +146,16 @@ namespace Armaz::Interrupts {
 	static uint64_t eh_regs[32];
 
 	void ExceptionHandler(uint64_t exception, AbortFrame *frame) {
-		asm volatile("mov %0, x0" : "=r"(eh_regs[0]));
-		asm volatile("mov %0, x1" : "=r"(eh_regs[1]));
-		asm volatile("mov %0, x2" : "=r"(eh_regs[2]));
-		asm volatile("mov %0, x3" : "=r"(eh_regs[3]));
-		asm volatile("mov %0, x4" : "=r"(eh_regs[4]));
-		asm volatile("mov %0, x5" : "=r"(eh_regs[5]));
-		asm volatile("mov %0, x6" : "=r"(eh_regs[6]));
-		asm volatile("mov %0, x7" : "=r"(eh_regs[7]));
-		asm volatile("mov %0, x8" : "=r"(eh_regs[8]));
-		asm volatile("mov %0, x9" : "=r"(eh_regs[9]));
+		asm volatile("mov %0, x0"  : "=r"(eh_regs[0]));
+		asm volatile("mov %0, x1"  : "=r"(eh_regs[1]));
+		asm volatile("mov %0, x2"  : "=r"(eh_regs[2]));
+		asm volatile("mov %0, x3"  : "=r"(eh_regs[3]));
+		asm volatile("mov %0, x4"  : "=r"(eh_regs[4]));
+		asm volatile("mov %0, x5"  : "=r"(eh_regs[5]));
+		asm volatile("mov %0, x6"  : "=r"(eh_regs[6]));
+		asm volatile("mov %0, x7"  : "=r"(eh_regs[7]));
+		asm volatile("mov %0, x8"  : "=r"(eh_regs[8]));
+		asm volatile("mov %0, x9"  : "=r"(eh_regs[9]));
 		asm volatile("mov %0, x10" : "=r"(eh_regs[10]));
 		asm volatile("mov %0, x11" : "=r"(eh_regs[11]));
 		asm volatile("mov %0, x12" : "=r"(eh_regs[12]));
@@ -216,6 +213,7 @@ namespace Armaz::Interrupts {
 	void InterruptHandler() {
 		unsigned iar = read32(GICC_IAR);
 		unsigned irq = iar & GICC_IAR_INTERRUPT_ID__MASK;
+		// printf("IRQ(%u)\n", irq);
 		if (irq < IRQ_LINES) {
 			if (15 < irq) {
 				callIRQHandler(irq);

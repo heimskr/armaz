@@ -19,6 +19,7 @@
 #include "board/BCM2711int.h"
 #include "interrupts/IRQ.h"
 #include "lib/printf.h"
+#include "pi/UART.h"
 
 namespace Armaz::Timers {
 	Timer timer;

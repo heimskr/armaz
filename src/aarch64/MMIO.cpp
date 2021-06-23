@@ -21,20 +21,4 @@ namespace Armaz::MMIO {
 			}
 		}
 	}
-
-	void write(ptrdiff_t reg, uint32_t data) {
-		*(volatile uint32_t *) (base + reg) = data;
-	}
-
-	uint32_t read(ptrdiff_t reg) {
-		return *(const volatile uint32_t *) (base + reg);
-	}
-}
-
-unsigned read32(uintptr_t addr) {
-	return *(volatile uint32_t *) addr;
-}
-
-void write32(uintptr_t addr, uint32_t data) {
-	*(volatile uint32_t *) addr = data;
 }

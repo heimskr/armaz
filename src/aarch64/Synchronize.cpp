@@ -21,14 +21,6 @@
 #include "aarch64/Synchronize.h"
 
 namespace Armaz {
-	void dataMemBarrier() {
-		asm volatile("dmb sy" ::: "memory");
-	}
-
-	void dataSyncBarrier() {
-		asm volatile("dsb sy" ::: "memory");
-	}
-
 	void cleanDataCache() {
 		// clean L1 data cache
 		for (unsigned nset = 0; nset < L1_DATA_CACHE_SETS; ++nset)
@@ -47,14 +39,6 @@ namespace Armaz {
 			}
 
 		dataSyncBarrier();
-	}
-
-	void invalidateInstructionCache() {
-		asm volatile("ic iallu" ::: "memory");
-	}
-
-	void instructionSyncBarrier() {
-		asm volatile("isb" ::: "memory");
 	}
 
 	void syncDataAndInstructionCache() {
