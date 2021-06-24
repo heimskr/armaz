@@ -511,7 +511,7 @@ namespace Armaz {
 #if RASPPI >= 4
 		// disable 1.8V supply
 		PropertyTagGPIOState gpio_state;
-		gpio_state.gpio = EXP_GPIO_BASE + 4;
+		gpio_state.gpio = PropertyTagGPIOState::BASE + 4;
 		gpio_state.state = 0;
 		if (!PropertyTags::getTag(PROPTAG_SET_SET_GPIO_STATE, &gpio_state, sizeof(gpio_state), 8))
 			return false;
@@ -605,9 +605,9 @@ namespace Armaz {
 	uint32_t EMMCDevice::getBaseClock() {
 		PropertyTagClockRate clock_rate;
 #if RASPPI <= 3
-		clock_rate.clockID = CLOCK_ID_EMMC;
+		clock_rate.clockID = PropertyTagClockRate::EMMC;
 #else
-		clock_rate.clockID = CLOCK_ID_EMMC2;
+		clock_rate.clockID = PropertyTagClockRate::EMMC2;
 #endif
 		if (!PropertyTags::getTag(PROPTAG_GET_CLOCK_RATE, &clock_rate, sizeof(clock_rate))) {
 			Log::error("Cannot get clock rate");

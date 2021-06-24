@@ -8,6 +8,8 @@
 #include "board/BCM2711int.h"
 #include "interrupts/IRQ.h"
 #include "lib/printf.h"
+#include "pi/GPIO.h"
+#include "pi/UART.h"
 
 #define AARCH64_OPCODE_BRANCH(distance) (0x14000000 | (distance))
 #define AARCH64_DISTANCE(from, to) ((uint32_t *) &(to) - (uint32_t *) &(from))
@@ -178,6 +180,7 @@ namespace Armaz::Interrupts {
 		asm volatile("mov %0, x29" : "=r"(eh_regs[29]));
 		asm volatile("mov %0, x30" : "=r"(eh_regs[30]));
 		asm volatile("mov %0, x31" : "=r"(eh_regs[31]));
+
 		printf("ExceptionHandler(%llu, 0x%llx)\n", exception, frame);
 		printf("Reason: 0b%b\n", (frame->esr_el1 >> 26) & 0b111111);
 		printf("[ esr_el1  0x%llx ]\n", frame->esr_el1);

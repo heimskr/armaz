@@ -27,10 +27,9 @@ namespace Armaz {
 		PropertyTag tag;
 		uint32_t gpio;
 		uint32_t state;
+		static constexpr uint32_t BASE = 128;
+		static constexpr uint32_t NUM  = 8;
 	} __attribute__((packed));
-
-	constexpr uint32_t EXP_GPIO_BASE = 128;
-	constexpr uint32_t EXP_GPIO_NUM  = 8;
 
 	struct PropertyTagPowerState {
 		PropertyTag tag;
@@ -49,14 +48,13 @@ namespace Armaz {
 		PropertyTag tag;
 		uint32_t clockID;
 		uint32_t rate; // in Hz
+		static constexpr uint32_t EMMC      = 1;
+		static constexpr uint32_t UART      = 2;
+		static constexpr uint32_t ARM       = 3;
+		static constexpr uint32_t CORE      = 4;
+		static constexpr uint32_t EMMC2     = 12;
+		static constexpr uint32_t PIXEL_BVB = 14;
 	} __attribute__((packed));
-
-	constexpr uint32_t CLOCK_ID_EMMC      =  1;
-	constexpr uint32_t CLOCK_ID_UART      =  2;
-	constexpr uint32_t CLOCK_ID_ARM       =  3;
-	constexpr uint32_t CLOCK_ID_CORE      =  4;
-	constexpr uint32_t CLOCK_ID_EMMC2     = 12;
-	constexpr uint32_t CLOCK_ID_PIXEL_BVB = 14;
 
 	namespace PropertyTags {
 		bool getTag(uint32_t id, void *tag, uint32_t tag_size, uint32_t requested_param_size = 0);

@@ -2,7 +2,10 @@
 
 // Credit: https://github.com/rsta2/circle
 
+#include <stddef.h>
 #include <stdint.h>
+
+#define SERIAL_GPIO_SELECT 14
 
 namespace Armaz::UART {
 	enum class Status {Normal, Overrun};
@@ -13,7 +16,7 @@ namespace Armaz::UART {
 	bool write(char);
 	void write(const char *);
 	size_t write(const void *, size_t);
-	unsigned char read();
+	size_t read(void *, size_t);
 
 	constexpr size_t UART_BUFFER_SIZE = 2048;
 	constexpr size_t UART_BUFFER_MASK = UART_BUFFER_SIZE - 1;

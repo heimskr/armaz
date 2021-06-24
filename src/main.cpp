@@ -37,18 +37,17 @@ extern "C" void main() {
 	GIC400::init((void *) 0xff840000);
 #endif
 
-	Interrupts::init();
-	UART::init();
-
-	printf("Hello, world!\n");
-
-	Memory::Allocator memory;
-	memory.setBounds((char *) MEM_HIGHMEM_START, (char *) MEM_HIGHMEM_END);
-
 	extern void(*__init_start)();
 	extern void(*__init_end)();
 	for (void (**func)() = &__init_start; func < &__init_end; ++func)
 		(**func)();
+
+	Interrupts::init();
+	UART::init();
+	printf("Hello, world!\n");
+
+	Memory::Allocator memory;
+	memory.setBounds((char *) MEM_HIGHMEM_START, (char *) MEM_HIGHMEM_END);
 
 	// MMIO::write(MMIO::ENABLE_IRQS_2, MMIO::read(MMIO::ENABLE_IRQS_2) | 0x02000000);
 	// printf("[%s:%d]\n", __FILE__, __LINE__);
