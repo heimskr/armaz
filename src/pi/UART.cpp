@@ -45,10 +45,10 @@
 	(int) Armaz::GPIO::Mode::AlternateFunction0))
 
 namespace Armaz::UART {
+	Status status = Status::Normal;
 	static volatile uint8_t inputQueue[UART_BUFFER_SIZE], outputQueue[UART_BUFFER_SIZE];
 	static volatile unsigned txIn = 0, txOut = 0;
 	static volatile unsigned rxIn = 0, rxOut = 0;
-	Status status = Status::Normal;
 	static GPIO::Pin pin32, pin33, txPin, rxPin;
 	static unsigned gpioConfig[6][2][2] = {
 		// TXD      RXD
@@ -70,31 +70,22 @@ namespace Armaz::UART {
 #endif
 	};
 
-	void writeActual(unsigned char ch) {
-		while (!(MMIO::read(AUX_MU_LSR_REG) & 0x20));
-		MMIO::write(AUX_MU_IO_REG, (uint32_t) ch);
-	}
-
 	static void handler(void *) {
 		dataMemBarrier();
 
 		const uint32_t mis = MMIO::read(UART0_MIS);
 		MMIO::write(UART0_ICR, mis);
-		writeActual(mis == 64? '@' : mis == 32? '#' : '!');
 
 		while (!(MMIO::read(UART0_FR) & FR_RXFE_MASK)) {
-			writeActual('%');
 			uint32_t dr = MMIO::read(UART0_DR);
 			if (((rxIn + 1) & UART_BUFFER_MASK) != rxOut) {
 				inputQueue[rxIn] = dr & 0xff;
 				rxIn = (rxIn + 1) & UART_BUFFER_MASK;
 			} else if (status == Status::Normal)
 				status = Status::Overrun;
-			writeActual(dr & 0xff);
 		}
 
 		while (!(MMIO::read(UART0_FR) & FR_TXFF_MASK)) {
-			writeActual('$');
 			if (txIn != txOut) {
 				MMIO::write(UART0_DR, outputQueue[txOut]);
 				txOut = (txOut + 1) & UART_BUFFER_MASK;
@@ -123,19 +114,6 @@ namespace Armaz::UART {
 		rxPin.assign(gpioConfig[device][1][0]);
 		rxPin.setMode(ALT_FUNC(device, 1));
 		rxPin.setMode(GPIO::PullMode::Up);
-
-		// MMIO::write(AUX_ENABLES, 1); // Enable UART1
-		// // MMIO::write(AUX_MU_IER_REG, 0);
-		// MMIO::write(AUX_MU_CNTL_REG, 0);
-		// MMIO::write(AUX_MU_LCR_REG, 3); // 8 bits
-		// MMIO::write(AUX_MU_MCR_REG, 0);
-		// MMIO::write(AUX_MU_IER_REG, 2);
-		// // MMIO::write(AUX_MU_IIR_REG, 0xc6); // Disable interrupts
-		// MMIO::write(AUX_MU_BAUD_REG, auxMuBaud(115200));
-		// GPIO::useAsAlt5(14);
-		// GPIO::useAsAlt5(15);
-		// MMIO::write(AUX_MU_CNTL_REG, 3); // Enable RX/TX
-
 
 		unsigned clockrate = 48000000;
 		PropertyTagClockRate clock_tag;
@@ -169,7 +147,7 @@ namespace Armaz::UART {
 		size_t out = 0;
 
 		while (count--) {
-			if ((*cbuffer == '\n' && !write('\r')) || !write(*cbuffer++))
+			if (!write(*cbuffer++))
 				break;
 			++out;
 		}

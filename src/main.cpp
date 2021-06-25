@@ -106,7 +106,7 @@ extern "C" void main() {
 	} else
 		Log::error("Failed to initialize EMMCDevice.");
 
-	for (;;) asm volatile("wfe");
+	for (;;) asm volatile("wfi");
 }
 
 extern "C" void main_secondary() {
