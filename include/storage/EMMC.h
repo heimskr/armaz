@@ -46,19 +46,23 @@ namespace Armaz {
 			EMMCDevice();
 			virtual ~EMMCDevice();
 
-			bool initialize();
+			bool init();
 
-			size_t read(void *buffer, size_t count);
-			size_t write(const void *buffer, size_t count);
+			ssize_t read(void *buffer, size_t count);
+			ssize_t write(const void *buffer, size_t count);
 
 			uint64_t seek(uint64_t offset);
 
-			virtual int read(void *buffer, size_t size, size_t offset) override;
-			virtual int write(const void *buffer, size_t bytes, size_t byte_offset) override;
+			virtual ssize_t read(void *buffer, size_t size, size_t offset) override;
+			virtual ssize_t write(const void *buffer, size_t bytes, size_t byte_offset) override;
 
 			const uint32_t * getID();
 
+			bool isReady() const { return initialized; }
+
 		private:
+			bool initialized;
+
 #ifndef USE_SDHOST
 			bool powerOn();
 			void powerOff();
@@ -148,7 +152,7 @@ namespace Armaz {
 			static const uint32_t sdCommands[];
 			static const uint32_t sdACommands[];
 
-			int readBytes(void *buffer, size_t bytes, size_t byte_offset);
-			int writeBytes(const void *buffer, size_t bytes, size_t byte_offset);
+			ssize_t readBytes(void *buffer, size_t bytes, size_t byte_offset);
+			ssize_t writeBytes(const void *buffer, size_t bytes, size_t byte_offset);
 	};
 }

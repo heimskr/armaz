@@ -1,6 +1,7 @@
 #include "assert.h"
 #include "Log.h"
 #include "Memory.h"
+#include "Test.h"
 #include "aarch64/ARM.h"
 #include "aarch64/MMIO.h"
 #include "aarch64/Timer.h"
@@ -72,37 +73,39 @@ extern "C" void main() {
 		Log::error("Reading model failed.");
 	}
 
+#if 0
 	EMMCDevice device;
-	if (device.initialize()) {
+	if (device.init()) {
 		MBR mbr;
 		if (device.read(&mbr, sizeof(mbr)) == -1ul) {
 			Log::error("Failed to read from EMMCDevice.\n");
 		} else {
-			// mbr.debug();
-			// Partition partition(device, mbr.thirdEntry);
-			// auto driver = std::make_unique<ThornFAT::ThornFATDriver>(&partition);
-			// if (driver->readdir("/", [&](const char *str, off_t offset) {
-			// 	printf("- %s @ %lld\n", str, offset);
-			// })) {
-			// 	printf("readdir failed.\n");
-			// } else {
-			// 	printf("readdir succeeded.\n");
-			// 	if (driver->create("/foo", 0666)) {
-			// 		printf("create failed.\n");
-			// 	} else {
-			// 		printf("create succeeded.\n");
-			// 		if (driver->readdir("/", [&](const char *str, off_t offset) {
-			// 			printf("- %s @ %lld\n", str, offset);
-			// 		})) {
-			// 			printf("readdir failed.\n");
-			// 		} else {
-			// 			printf("readdir succeeded.\n");
-			// 		}
-			// 	}
-			// }
+			mbr.debug();
+			Partition partition(device, mbr.thirdEntry);
+			auto driver = std::make_unique<ThornFAT::ThornFATDriver>(&partition);
+			if (driver->readdir("/", [&](const char *str, off_t offset) {
+				printf("- %s @ %lld\n", str, offset);
+			})) {
+				printf("readdir failed.\n");
+			} else {
+				printf("readdir succeeded.\n");
+				if (driver->create("/foo", 0666)) {
+					printf("create failed.\n");
+				} else {
+					printf("create succeeded.\n");
+					if (driver->readdir("/", [&](const char *str, off_t offset) {
+						printf("- %s @ %lld\n", str, offset);
+					})) {
+						printf("readdir failed.\n");
+					} else {
+						printf("readdir succeeded.\n");
+					}
+				}
+			}
 		}
 	} else
 		Log::error("Failed to initialize EMMCDevice.");
+#endif
 
 	std::string input;
 	char ch;
@@ -112,10 +115,8 @@ extern "C" void main() {
 	for (;;) {
 		while (UART::read(&ch, 1) == 1) {
 			if (ch == '\n') {
-				std::list<std::string> pieces = Util::splitToList(input, " ", true);
 				UART::write('\n');
-				for (const std::string &piece: pieces)
-					printf("- \"%s\"\n", piece.c_str());
+				test(input);
 				input.clear();
 			} else if (ch == 127) {
 				if (!input.empty()) {

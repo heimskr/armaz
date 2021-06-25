@@ -19,7 +19,7 @@ namespace Armaz::UART {
 	size_t read(void *, size_t);
 	size_t availableToRead();
 
-	constexpr size_t UART_BUFFER_SIZE = 2048;
+	constexpr size_t UART_BUFFER_SIZE = 1 << 20;
 	constexpr size_t UART_BUFFER_MASK = UART_BUFFER_SIZE - 1;
 
 	constexpr ptrdiff_t GPIO_BASE = 0x200000;

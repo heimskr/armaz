@@ -293,6 +293,7 @@ namespace Armaz::ThornFAT {
 		ENTER;
 
 		off_t start = superblock.startBlock * superblock.blockSize;
+		printf("%llu * %llu = %llu\n", superblock.startBlock, superblock.blockSize, superblock.startBlock * superblock.blockSize);
 		if (offset) {
 			DBGFE("getRoot", "Setting offset to " BLR, start);
 			*offset = start;
@@ -1769,8 +1770,6 @@ namespace Armaz::ThornFAT {
 			DBGF("make", "Table size too large: %u", table_size);
 			return false;
 		}
-
-
 
 		superblock = {
 			.magic = MAGIC,

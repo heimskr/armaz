@@ -17,8 +17,11 @@ namespace Armaz {
 
 		Partition(StorageDevice &, const MBREntry &);
 
-		int read(void *buffer, size_t size, size_t byte_offset);
-		int write(const void *buffer, size_t size, size_t byte_offset);
+		/** Returns the number of bytes read if successful, or a negative error code otherwise. */
+		ssize_t read(void *buffer, size_t size, size_t byte_offset);
+		/** Returns the number of bytes written if successful, or a negative error code otherwise. */
+		ssize_t write(const void *buffer, size_t size, size_t byte_offset);
+
 		// int clear();
 	};
 }

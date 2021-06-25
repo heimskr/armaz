@@ -34,6 +34,8 @@
 // Broadcom BCM2835 ARM Peripherals Guide
 //
 
+#include <climits>
+
 #include "assert.h"
 #include "Log.h"
 #include "util.h"
@@ -506,7 +508,10 @@ namespace Armaz {
 		delete sdConfig;
 	}
 
-	bool EMMCDevice::initialize() {
+	bool EMMCDevice::init() {
+		if (initialized)
+			return false;
+
 #ifndef USE_SDHOST
 #if RASPPI >= 4
 		// disable 1.8V supply
@@ -523,12 +528,8 @@ namespace Armaz {
 			return false;
 #endif
 
-		peripheralEntry();
-
 		if (cardInit() != 0)
 			return false;
-
-		peripheralExit();
 
 		// const char device_name[] = "emmc1";
 
@@ -539,39 +540,27 @@ namespace Armaz {
 		// 	return false;
 
 		// CDeviceNameService::Get()->AddDevice(device_name, this, true);
-		return true;
+		return initialized = true;
 	}
 
-	size_t EMMCDevice::read(void *buffer, size_t count) {
-		if (offset % SD_BLOCK_SIZE != 0)
+	ssize_t EMMCDevice::read(void *buffer, size_t count) {
+		if (!initialized || offset % SD_BLOCK_SIZE != 0)
 			return -1;
-		uint32_t block = offset / SD_BLOCK_SIZE;
 
-		peripheralEntry();
-
-		if (doRead((uint8_t *) buffer, count, block) != count) {
-			peripheralExit();
+		if (doRead((uint8_t *) buffer, count, offset / SD_BLOCK_SIZE) != count)
 			return -1;
-		}
 
-		peripheralExit();
 		return count;
 	}
 
-	size_t EMMCDevice::write(const void *buffer, size_t count) {
-		if (offset % SD_BLOCK_SIZE != 0)
+	ssize_t EMMCDevice::write(const void *buffer, size_t count) {
+		if (!initialized || offset % SD_BLOCK_SIZE != 0)
 			return -1;
-		const uint32_t block = offset / SD_BLOCK_SIZE;
 
-		peripheralEntry();
-
-		if (doWrite((uint8_t *) buffer, count, block) != count) {
-			peripheralExit();
+		if (doWrite((uint8_t *) buffer, count, offset / SD_BLOCK_SIZE) != count)
 			return -1;
-		}
 
-		peripheralExit();
-		return count;
+		return count; // Please don't write more than like 9 quintillion bytes at a time.
 	}
 
 	uint64_t EMMCDevice::seek(uint64_t new_offset) {
@@ -2063,7 +2052,8 @@ namespace Armaz {
 		return deviceID;
 	}
 
-	int EMMCDevice::readBytes(void *buffer, size_t bytes, size_t byte_offset) {
+	ssize_t EMMCDevice::readBytes(void *buffer, size_t bytes, size_t byte_offset) {
+		assert(bytes < LONG_MAX);
 		size_t total_bytes_read = 0;
 		size_t lba = byte_offset / SD_BLOCK_SIZE;
 		offset %= SD_BLOCK_SIZE;
@@ -2071,8 +2061,8 @@ namespace Armaz {
 
 		while (0 < bytes) {
 			seek(lba * SD_BLOCK_SIZE);
-			if (read(read_buffer, SD_BLOCK_SIZE) == -1ul)
-				return 1;
+			if (read(read_buffer, SD_BLOCK_SIZE) == -1)
+				return -1;
 			const size_t to_copy = SD_BLOCK_SIZE - byte_offset < bytes? SD_BLOCK_SIZE - byte_offset : bytes;
 			memcpy(static_cast<char *>(buffer) + total_bytes_read, read_buffer + byte_offset, to_copy);
 			total_bytes_read += to_copy;
@@ -2081,10 +2071,11 @@ namespace Armaz {
 			++lba;
 		}
 
-		return 0;
+		return bytes;
 	}
 
-	int EMMCDevice::writeBytes(const void *buffer, size_t bytes, size_t byte_offset) {
+	ssize_t EMMCDevice::writeBytes(const void *buffer, size_t bytes, size_t byte_offset) {
+		assert(bytes < LONG_MAX);
 		size_t lba = byte_offset / SD_BLOCK_SIZE;
 		byte_offset %= SD_BLOCK_SIZE;
 
@@ -2098,12 +2089,12 @@ namespace Armaz {
 
 		if (byte_offset != 0) {
 			seek(lba * SD_BLOCK_SIZE);
-			if (read(write_buffer, SD_BLOCK_SIZE) == -1ul)
-				return 1;
+			if (read(write_buffer, SD_BLOCK_SIZE) == -1)
+				return -1;
 			const size_t to_write = (SD_BLOCK_SIZE - byte_offset) < bytes? SD_BLOCK_SIZE - byte_offset : bytes;
 			memcpy(write_buffer + byte_offset, buffer, to_write);
-			if (write(write_buffer, SD_BLOCK_SIZE) == -1ul)
-				return 1;
+			if (write(write_buffer, SD_BLOCK_SIZE) == -1)
+				return -1;
 			bytes -= to_write;
 			++lba;
 			cbuffer += to_write;
@@ -2112,33 +2103,33 @@ namespace Armaz {
 		while (0 < bytes) {
 			if (bytes < SD_BLOCK_SIZE) {
 				seek(lba * SD_BLOCK_SIZE);
-				if (read(write_buffer, SD_BLOCK_SIZE) == -1ul)
-					return 1;
+				if (read(write_buffer, SD_BLOCK_SIZE) == -1)
+					return -1;
 				memcpy(write_buffer, cbuffer, bytes);
-				if (write(write_buffer, SD_BLOCK_SIZE) == -1ul)
-					return 1;
+				if (write(write_buffer, SD_BLOCK_SIZE) == -1)
+					return -1;
 				break;
 			} else {
 				seek(lba * SD_BLOCK_SIZE);
-				if (write(cbuffer, SD_BLOCK_SIZE) == -1ul)
-					return 1;
+				if (write(cbuffer, SD_BLOCK_SIZE) == -1)
+					return -1;
 				bytes -= SD_BLOCK_SIZE;
 				cbuffer += SD_BLOCK_SIZE;
 			}
 			++lba;
 		}
 
-		return 0;
+		return bytes;
 	}
 
-	int EMMCDevice::read(void *buffer, size_t bytes, size_t byte_offset) {
+	ssize_t EMMCDevice::read(void *buffer, size_t bytes, size_t byte_offset) {
 		if (byte_offset % SD_BLOCK_SIZE || bytes % SD_BLOCK_SIZE)
 			return readBytes(buffer, bytes, byte_offset);
 		seek(byte_offset);
 		return read(buffer, bytes);
 	}
 
-	int EMMCDevice::write(const void *buffer, size_t bytes, size_t byte_offset) {
+	ssize_t EMMCDevice::write(const void *buffer, size_t bytes, size_t byte_offset) {
 		if (byte_offset % SD_BLOCK_SIZE || bytes % SD_BLOCK_SIZE)
 			return writeBytes(buffer, bytes, byte_offset);
 		seek(byte_offset);

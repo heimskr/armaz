@@ -135,7 +135,7 @@ namespace Armaz::ThornFAT {
 
 			/** Reads the raw bytes for a given directory entry and stores them in an array.
 			 *  @param file  A reference to a directory entry struct.
-			 *  @param out   A reference that to a vector of bytes that will be filled with the read bytes.
+			 *  @param out   A reference to a vector of bytes that will be filled with the read bytes.
 			 *  @param count An optional pointer that will be set to the number of bytes read.
 			 *  @return Returns 0 if the operation succeeded or a negative error code otherwise. */
 			int readFile(const DirEntry &file, std::vector<uint8_t> &out, size_t *count = nullptr);
