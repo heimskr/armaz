@@ -64,10 +64,12 @@ namespace Armaz {
 
 		bool callIRQHandler(unsigned irq);
 
-		inline void enableIRQs() { asm volatile("msr DAIFClr, #2"); }
-		inline void enableFIQs() { asm volatile("msr DAIFClr, #1"); }
-		inline void disableIRQs() { asm volatile("msr DAIFSet, #2"); }
-		inline void disableFIQs() { asm volatile("msr DAIFSet, #1"); }
+		inline void enableIRQs() { asm volatile("msr daifclr, #2"); }
+		inline void enableFIQs() { asm volatile("msr daifclr, #1"); }
+		inline void enableBoth() { asm volatile("msr daifclr, #3"); }
+		inline void disableIRQs() { asm volatile("msr daifset, #2"); }
+		inline void disableFIQs() { asm volatile("msr daifset, #1"); }
+		inline void disableBoth() { asm volatile("msr daifset, #3"); }
 	}
 }
 

@@ -49,8 +49,6 @@ extern "C" void main() {
 	Memory::Allocator memory;
 	memory.setBounds((char *) MEM_HIGHMEM_START, (char *) MEM_HIGHMEM_END);
 
-	// MMIO::write(MMIO::ENABLE_IRQS_2, MMIO::read(MMIO::ENABLE_IRQS_2) | 0x02000000);
-	// printf("[%s:%d]\n", __FILE__, __LINE__);
 	// Timers::timer.init();
 
 	PropertyTagMemory mem;
@@ -110,13 +108,14 @@ extern "C" void main() {
 	char ch;
 
 	for (;;) {
-		while (UART::read(&ch, 1) == 1) {
+		while (UART::availableToRead() != 0) {
+			UART::read(&ch, 1);
 			if (ch == '\n') {
 				printf("\n\"%s\"\n", input.c_str());
 				input.clear();
 			} else {
 				input += ch;
-				printf("%c", ch);
+				UART::write(ch);
 			}
 		}
 

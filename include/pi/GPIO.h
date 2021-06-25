@@ -9,14 +9,6 @@
 #include <stdint.h>
 
 namespace Armaz::GPIO {
-	bool call(uint32_t pin_number, uint32_t value, uintptr_t base, uint32_t field_size, uint32_t field_max);
-	bool set(uint32_t pin_number, uint32_t value);
-	bool clear(uint32_t pin_number, uint32_t value);
-	bool pull(uint32_t pin_number, uint32_t value);
-	bool function(uint32_t pin_number, uint32_t value);
-	void useAsAlt3(uint32_t pin_number);
-	void useAsAlt5(uint32_t pin_number);
-
 	enum class Mode {
 		Input,
 		Output,

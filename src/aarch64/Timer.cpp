@@ -79,7 +79,7 @@ namespace Armaz::Timers {
 	void Timer::handler() {
 		// static unsigned i = 0;
 		// printf("Timer. %u\n", ++i);
-		printf("Timer. 0x%llx\n", lastlink);
+		// printf("Timer. 0x%llx\n", lastlink);
 
 		uint64_t cval;
 		asm volatile("mrs %0, cntp_cval_el0" : "=r"(cval));

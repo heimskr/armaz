@@ -4,7 +4,9 @@
 #include <string.h>
 
 #include "assert.h"
+#include "Config.h"
 #include "aarch64/MMIO.h"
+#include "aarch64/Spinlock.h"
 #include "aarch64/Synchronize.h"
 #include "board/BCM2711int.h"
 #include "interrupts/IRQ.h"
@@ -12,6 +14,8 @@
 #include "pi/GPIO.h"
 #include "pi/PropertyTags.h"
 #include "pi/UART.h"
+
+// #define UART_ACKNOWLEDGE_INTERRUPTS
 
 #define IFLS_RXIFSEL_SHIFT 3
 #define IFLS_RXIFSEL_MASK  (7 << IFLS_RXIFSEL_SHIFT)
@@ -72,8 +76,22 @@ namespace Armaz::UART {
 #endif
 	};
 
+#ifdef UART_USE_FIQ
+	static Spinlock spinlock {Level::FIQ};
+#else
+	static Spinlock spinlock {Level::IRQ};
+#endif
+	static Spinlock lineSpinlock {Level::Task};
+
 	static void handler(void *) {
 		dataMemBarrier();
+
+		spinlock.acquire();
+
+#ifdef UART_ACKNOWLEDGE_INTERRUPTS
+		const uint32_t mis = MMIO::read(UART0_MIS);
+		MMIO::write(UART0_ICR, mis);
+#endif
 
 		while (!(MMIO::read(UART0_FR) & FR_RXFE_MASK)) {
 			const uint32_t dr = MMIO::read(UART0_DR);
@@ -93,6 +111,8 @@ namespace Armaz::UART {
 				break;
 			}
 		}
+
+		spinlock.release();
 	}
 
 	void init(int baud) {
@@ -145,11 +165,16 @@ namespace Armaz::UART {
 		const char *cbuffer = reinterpret_cast<const char *>(buffer);
 		size_t out = 0;
 
+		lineSpinlock.acquire();
+
 		while (count--) {
 			if (!write(*cbuffer++))
 				break;
 			++out;
 		}
+
+		lineSpinlock.release();
+		spinlock.acquire();
 
 		while (txIn != txOut) {
 			if (!(MMIO::read(UART0_FR) & FR_TXFF_MASK)) {
@@ -161,6 +186,8 @@ namespace Armaz::UART {
 			}
 		}
 
+		spinlock.release();
+
 		return out;
 	}
 
@@ -168,12 +195,17 @@ namespace Armaz::UART {
 		if (ch == '\n')
 			write('\r');
 
+		spinlock.acquire();
+
 		if (((txIn + 1) & UART_BUFFER_MASK) != txOut) {
 			outputQueue[txIn] = ch;
 			txIn = (txIn + 1) & UART_BUFFER_MASK;
 			MMIO::write(UART0_IMSC, MMIO::read(UART0_IMSC) | INT_TX);
+			spinlock.release();
 			return true;
 		}
+
+		spinlock.release();
 		return false;
 	}
 
@@ -189,6 +221,8 @@ namespace Armaz::UART {
 
 		size_t result = 0;
 
+		spinlock.acquire();
+
 		if (status != Status::Normal)
 			return 0;
 
@@ -203,17 +237,19 @@ namespace Armaz::UART {
 			++result;
 		}
 
+		spinlock.release();
+
 		return result;
 	}
 
 	size_t availableToRead() {
 		size_t result;
-		// spinLock.acquire();
+		spinlock.acquire();
 		if (rxIn < rxOut)
 			result = UART_BUFFER_SIZE + rxIn - rxOut;
 		else
 			result = rxIn - rxOut;
-		// spinLock.release();
+		spinlock.release();
 		return result;
 	}
 }

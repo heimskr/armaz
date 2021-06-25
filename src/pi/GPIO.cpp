@@ -2,6 +2,7 @@
 
 #include "assert.h"
 #include "aarch64/MMIO.h"
+#include "aarch64/Spinlock.h"
 #include "interrupts/IRQ.h"
 #include "pi/GPIO.h"
 
@@ -9,6 +10,8 @@
 #include "lib/printf.h"
 
 namespace Armaz::GPIO {
+	static Spinlock spinlock;
+
 	Pin::Pin() {}
 
 	Pin::Pin(unsigned pin_, Mode mode_, Manager &manager_): mode(mode_), manager(&manager_) {
@@ -50,12 +53,12 @@ namespace Armaz::GPIO {
 		ptrdiff_t sel_reg = GPFSEL0 + (pin / 10) * 4;
 		uint32_t shift = 3 * (pin % 10);
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		uint32_t new_value = MMIO::read(sel_reg);
 		new_value |= (mode == Mode::Output? 1 : 0) << shift;
 		new_value &= ~(7 << shift);
 		MMIO::write(sel_reg, new_value);
-		// spinLock.release();
+		spinlock.release();
 
 		if (init)
 			switch (mode) {
@@ -132,9 +135,9 @@ namespace Armaz::GPIO {
 
 		const ptrdiff_t reg = GPREN0 + registerOffset + ((int) interrupt_ - (int) Interrupt::RisingEdge) * 12;
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		MMIO::write(reg, MMIO::read(reg) | registerMask);
-		// spinLock.release();
+		spinlock.release();
 	}
 
 	void Pin::disableInterrupt() {
@@ -142,9 +145,9 @@ namespace Armaz::GPIO {
 
 		const ptrdiff_t reg = GPREN0 + registerOffset + ((int) interrupt - (int) Interrupt::RisingEdge) * 12;
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		MMIO::write(reg, MMIO::read(reg) & ~registerMask);
-		// spinLock.release();
+		spinlock.release();
 
 		interrupt = Interrupt::Unknown;
 	}
@@ -159,9 +162,9 @@ namespace Armaz::GPIO {
 
 		ptrdiff_t reg = GPREN0 + registerOffset + ((int) interrupt_ - (int) Interrupt::RisingEdge) * 12;
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		MMIO::write(reg, MMIO::read(reg) | registerMask);
-		// spinLock.release();
+		spinlock.release();
 	}
 
 	void Pin::disableInterrupt2() {
@@ -169,9 +172,9 @@ namespace Armaz::GPIO {
 
 		ptrdiff_t reg = GPREN0 + registerOffset + ((int) interrupt2 - (int) Interrupt::RisingEdge) * 12;
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		MMIO::write(reg, MMIO::read(reg) & ~registerMask);
-		// spinLock.release();
+		spinlock.release();
 
 		interrupt2 = Interrupt::Unknown;
 	}
@@ -197,7 +200,7 @@ namespace Armaz::GPIO {
 	}
 
 	void Pin::setMode(PullMode pull_mode) {
-		// spinLock.acquire();
+		spinlock.acquire();
 
 		assert(pin < PINS);
 		const ptrdiff_t mode_reg = GPPUPPDN0 + (pin / 16) * 4;
@@ -208,7 +211,7 @@ namespace Armaz::GPIO {
 
 		MMIO::write(mode_reg, (MMIO::read(mode_reg) & ~(3 << shift)) | (mode_map[(int) pull_mode] << shift));
 
-		// spinLock.release();
+		spinlock.release();
 	}
 
 	void Pin::setAlternateFunction(unsigned function) {
@@ -219,9 +222,9 @@ namespace Armaz::GPIO {
 		assert(function <= 5);
 		static const unsigned function_map[6] = {4, 5, 6, 7, 3, 2};
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		MMIO::write(sel_reg, (MMIO::read(sel_reg) & ~(7 << shift)) | (function_map[function] << shift));
-		// spinLock.release();
+		spinlock.release();
 	}
 
 	void Pin::interruptHandler() {
@@ -237,10 +240,10 @@ namespace Armaz::GPIO {
 		ptrdiff_t reg = GPREN0 + (pin_ / 32) * 4;
 		const uint32_t mask = 1 << (pin_ % 32);
 
-		// spinLock.acquire();
+		spinlock.acquire();
 		for (; reg < GPAFEN0 + 4; reg += 12)
 			MMIO::write(reg, MMIO::read(reg) & ~mask);
-		// spinLock.release();
+		spinlock.release();
 	}
 
 	Manager::Manager() {
@@ -311,52 +314,5 @@ namespace Armaz::GPIO {
 	void Manager::interruptStub(void *param) {
 		assert(param);
 		reinterpret_cast<Manager *>(param)->interruptHandler();
-	}
-
-
-
-
-	bool call(uint32_t pin_number, uint32_t value, uintptr_t base, uint32_t field_size, uint32_t field_max) {
-		uint32_t field_mask = (1 << field_size) - 1;
-	
-		if (field_max < pin_number || field_mask < value)
-			return false;
-
-		uint32_t num_fields = 32 / field_size;
-		uintptr_t reg = base + ((pin_number / num_fields) * 4);
-		uint32_t shift = (pin_number % num_fields) * field_size;
-
-		uint32_t curval = MMIO::read(reg);
-		curval &= ~(field_mask << shift);
-		curval |= value << shift;
-		MMIO::write(reg, curval);
-
-		return true;
-	}
-
-	bool set(uint32_t pin_number, uint32_t value) {
-		return call(pin_number, value, GPSET0, 1, MAX_PIN);
-	}
-
-	bool clear(uint32_t pin_number, uint32_t value) {
-		return call(pin_number, value, GPCLR0, 1, MAX_PIN);
-	}
-
-	bool pull(uint32_t pin_number, uint32_t value) {
-		return call(pin_number, value, GPPUPPDN0, 2, MAX_PIN);
-	}
-
-	bool function(uint32_t pin_number, uint32_t value) {
-		return call(pin_number, value, GPFSEL0, 3, MAX_PIN);
-	}
-
-	void useAsAlt3(uint32_t pin_number) {
-		pull(pin_number, PULL_NONE);
-		function(pin_number, FUNCTION_ALT3);
-	}
-
-	void useAsAlt5(uint32_t pin_number) {
-		pull(pin_number, PULL_NONE);
-		function(pin_number, FUNCTION_ALT5);
 	}
 }
