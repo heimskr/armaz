@@ -113,8 +113,10 @@ extern "C" void main() {
 				printf("\n\"%s\"\n", input.c_str());
 				input.clear();
 			} else if (ch == 127) {
-				input.pop_back();
-				printf("\e[D \e[D");
+				if (!input.empty()) {
+					input.pop_back();
+					printf("\e[D \e[D");
+				}
 			} else {
 				input += ch;
 				UART::write(ch);
