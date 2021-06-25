@@ -77,7 +77,7 @@ namespace Armaz::UART {
 		MMIO::write(UART0_ICR, mis);
 
 		while (!(MMIO::read(UART0_FR) & FR_RXFE_MASK)) {
-			uint32_t dr = MMIO::read(UART0_DR);
+			const uint32_t dr = MMIO::read(UART0_DR);
 			if (((rxIn + 1) & UART_BUFFER_MASK) != rxOut) {
 				inputQueue[rxIn] = dr & 0xff;
 				rxIn = (rxIn + 1) & UART_BUFFER_MASK;
@@ -135,7 +135,7 @@ namespace Armaz::UART {
 		MMIO::write(UART0_ICR, 0x7ff);
 		MMIO::write(UART0_IBRD, intdiv);
 		MMIO::write(UART0_FBRD, fractdiv);
-		MMIO::write(UART0_IFLS, IFLS_IFSEL_1_4 << IFLS_TXIFSEL_SHIFT | IFLS_IFSEL_1_4 << IFLS_RXIFSEL_SHIFT);
+		MMIO::write(UART0_IFLS, (IFLS_IFSEL_1_4 << IFLS_TXIFSEL_SHIFT) | (IFLS_IFSEL_1_4 << IFLS_RXIFSEL_SHIFT));
 		MMIO::write(UART0_LCRH, LCRH_WLEN8_MASK | LCRH_FEN_MASK);
 		MMIO::write(UART0_IMSC, INT_RX | INT_RT | INT_OE);
 		dataSyncBarrier();

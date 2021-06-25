@@ -51,7 +51,7 @@ extern "C" void main() {
 
 	// MMIO::write(MMIO::ENABLE_IRQS_2, MMIO::read(MMIO::ENABLE_IRQS_2) | 0x02000000);
 	// printf("[%s:%d]\n", __FILE__, __LINE__);
-	Timers::timer.init();
+	// Timers::timer.init();
 
 	PropertyTagMemory mem;
 	if (PropertyTags::getTag(PROPTAG_GET_ARM_MEMORY, &mem, sizeof(mem))) {
@@ -106,7 +106,22 @@ extern "C" void main() {
 	} else
 		Log::error("Failed to initialize EMMCDevice.");
 
-	for (;;) asm volatile("wfi");
+	std::string input;
+	char ch;
+
+	for (;;) {
+		while (UART::read(&ch, 1) == 1) {
+			if (ch == '\n') {
+				printf("\n\"%s\"\n", input.c_str());
+				input.clear();
+			} else {
+				input += ch;
+				printf("%c", ch);
+			}
+		}
+
+		asm volatile("wfi");
+	}
 }
 
 extern "C" void main_secondary() {
