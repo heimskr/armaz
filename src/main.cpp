@@ -108,11 +108,13 @@ extern "C" void main() {
 	char ch;
 
 	for (;;) {
-		while (UART::availableToRead() != 0) {
-			UART::read(&ch, 1);
+		while (UART::read(&ch, 1) == 1) {
 			if (ch == '\n') {
 				printf("\n\"%s\"\n", input.c_str());
 				input.clear();
+			} else if (ch == 127) {
+				input.pop_back();
+				printf("\e[D \e[D");
 			} else {
 				input += ch;
 				UART::write(ch);
