@@ -107,10 +107,15 @@ extern "C" void main() {
 	std::string input;
 	char ch;
 
+	input.reserve(128);
+
 	for (;;) {
 		while (UART::read(&ch, 1) == 1) {
 			if (ch == '\n') {
-				printf("\n\"%s\"\n", input.c_str());
+				std::list<std::string> pieces = Util::splitToList(input, " ", true);
+				UART::write('\n');
+				for (const std::string &piece: pieces)
+					printf("- \"%s\"\n", piece.c_str());
 				input.clear();
 			} else if (ch == 127) {
 				if (!input.empty()) {
