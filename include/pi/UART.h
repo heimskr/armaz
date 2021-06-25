@@ -17,6 +17,7 @@ namespace Armaz::UART {
 	void write(const char *);
 	size_t write(const void *, size_t);
 	size_t read(void *, size_t);
+	size_t availableToRead();
 
 	constexpr size_t UART_BUFFER_SIZE = 2048;
 	constexpr size_t UART_BUFFER_MASK = UART_BUFFER_SIZE - 1;

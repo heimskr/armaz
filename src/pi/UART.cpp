@@ -1,3 +1,5 @@
+// Credit: https://github.com/rsta2/circle
+
 #include <stddef.h>
 #include <string.h>
 
@@ -72,9 +74,6 @@ namespace Armaz::UART {
 
 	static void handler(void *) {
 		dataMemBarrier();
-
-		const uint32_t mis = MMIO::read(UART0_MIS);
-		MMIO::write(UART0_ICR, mis);
 
 		while (!(MMIO::read(UART0_FR) & FR_RXFE_MASK)) {
 			const uint32_t dr = MMIO::read(UART0_DR);
@@ -204,6 +203,17 @@ namespace Armaz::UART {
 			++result;
 		}
 
+		return result;
+	}
+
+	size_t availableToRead() {
+		size_t result;
+		// spinLock.acquire();
+		if (rxIn < rxOut)
+			result = UART_BUFFER_SIZE + rxIn - rxOut;
+		else
+			result = rxIn - rxOut;
+		// spinLock.release();
 		return result;
 	}
 }
