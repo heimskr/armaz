@@ -141,8 +141,8 @@ namespace Armaz::ThornFAT::Util {
 #define LL BXV
 #define LR BXV
 #define DBGL { if (DEBUG_ENABLED) { printf(IDS("├─────────────────────────────┼──┼─────────────┤") "\n"); FLOG; } }
-#define MKTAG(fs, ls)   IDS(LL)  fs "%" str(TAG_WIDTH) "s" A_RESET " " ls "%4d" A_RESET IDS(LR) // identifies location
-#define MKHEADER(style) IDS(LL " ") style "%" str(HEADER_WIDTH) "s" A_RESET " "         IDS(LR) // identifies function
+#define MKTAG(fs, ls)   IDS(LL)  fs "%" stringify(TAG_WIDTH) "s" A_RESET " " ls "%4d" A_RESET IDS(LR) // identifies location
+#define MKHEADER(style) IDS(LL " ") style "%" stringify(HEADER_WIDTH) "s" A_RESET " "         IDS(LR) // identifies function
 #define MKCTAG(color) MKTAG(A_BOLD color, color)
 #define MKCHEADER(color) MKHEADER(color)
 #define MKPAIR(t, h) t "  " h "  " BASEINDENT "%s"
@@ -227,7 +227,7 @@ namespace Armaz::ThornFAT::Util {
 #endif
 #define STRERR(n) strerror((n) < 0? -(n) : (n))
 #ifdef DEBUG_SETPTR
-#define SETPTR(ptr, to) { if ((ptr)) { CDBG(A_CHARTREUSE, "setptr", BSR SUDLARR BSR, str(ptr), str(to)); *(ptr) = (to); } }
+#define SETPTR(ptr, to) { if ((ptr)) { CDBG(A_CHARTREUSE, "setptr", BSR SUDLARR BSR, stringify(ptr), stringify(to)); *(ptr) = (to); } }
 #else
 #define SETPTR(ptr, to) { if ((ptr)) { *(ptr) = (to); } }
 #endif
@@ -296,7 +296,7 @@ namespace Armaz::ThornFAT::Util {
 #endif
 #define DBG_ON()  { debug_enable = 1; }
 #define DBG_OFF() { debug_enable = 0; }
-#define str(x) xstr(x)
+#define stringify(x) xstr(x)
 #define xstr(x) #x
 #ifndef DEBUG_FATFIND
 #define FF_EXIT { METHOD_ON(INDEX_FATFIND); EXIT; }

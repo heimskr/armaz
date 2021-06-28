@@ -134,6 +134,15 @@ namespace Armaz {
 			UART::write('\n');
 			for (int i = 0; i < 512 / 4; ++i)
 				printf("%3d: %d\n", i, ((int *) bytes)[i]);
+		} else if (front == "create") {
+			if (pieces.size() != 2)
+				Error("Usage: create <path>");
+			CheckDriver();
+			const int status = driver->create(pieces[1].c_str(), 0666);
+			if (status != 0)
+				Error("Status: %d\n", status);
+			else
+				Success("Created \e[1m%s\e[22m.", pieces[1].c_str());
 		} else
 			Error("Unknown command: %s", front.c_str());
 

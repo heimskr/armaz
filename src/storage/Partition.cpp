@@ -43,9 +43,7 @@ namespace Armaz {
 		if (status < 0)
 			return status;
 		char *verify = new char[size];
-		// TODO: change to memset once alignment is sorted out
-		for (size_t i = 0; i < size; ++i)
-			verify[i] = 0;
+		memset(verify, 0, size);
 		status = parent->read(verify, size, offset + byte_offset);
 		if (status < 0)
 			return status;

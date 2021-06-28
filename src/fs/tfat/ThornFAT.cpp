@@ -10,7 +10,15 @@
 #include "util.h"
 
 namespace Armaz::ThornFAT {
-	char ThornFATDriver::nothing[sizeof(DirEntry)] = {0};
+	Superblock::operator std::string() const {
+		static char magic_hex[16];
+		snprintf(magic_hex, sizeof(magic_hex), "%x", magic);
+		return "Magic[" + std::string(magic_hex) + "], BlockCount[" + std::to_string(blockCount) + "], FatBlocks["
+			+ std::to_string(fatBlocks) + "], BlockSize[" + std::to_string(blockSize) + "], StartBlock["
+			+ std::to_string(startBlock) + "]";
+	}
+
+	const char ThornFATDriver::nothing[sizeof(DirEntry)] = {0};
 
 	ThornFATDriver::ThornFATDriver(Partition *partition_): Driver(partition_) {
 		root.startBlock = UNUSABLE;
@@ -20,46 +28,33 @@ namespace Armaz::ThornFAT {
 	int ThornFATDriver::readSuperblock(Superblock &out) {
 		HELLO("");
 		memset(&out, 0, sizeof(Superblock));
-		DBGF("rSb", "magic = 0x%x, blockCount = %lu, fatBlocks = %u, blockSize = %u, startBlock = %d",
-			out.magic, out.blockCount, out.fatBlocks, out.blockSize, out.startBlock);
 		ssize_t status = partition->read(&out, sizeof(Superblock), 0);
-		DBGF("rSb", "status = %ld, magic = 0x%x, blockCount = %lu, fatBlocks = %u, blockSize = %u, startBlock = %d",
-			status, out.magic, out.blockCount, out.fatBlocks, out.blockSize, out.startBlock);
 		CHECKSL0(RSUPERBLOCKH, "Couldn't read superblock");
-		// if (status != 0) {
-		// 	DEBUG("[ThornFATDriver::readSuperblock] Reading failed: %s\n", strerror(status));
-		// }
 		return -status;
 	}
 
 	int ThornFATDriver::find(fd_t fd, const char *path, DirEntry *out, off_t *offset, bool get_parent,
 	                         std::string *last_name) {
 		ENTER;
-		REPORT;
 
 		if (!FD_VALID(fd) && !path) {
-			REPORT;
 			WARNS(FATFINDH, "Both search types are unspecified.");
 			EXIT;
 			return -EINVAL;
 		}
 
-		REPORT;
 #ifndef DEBUG_FATFIND
 	METHOD_OFF(INDEX_FATFIND);
 #endif
 
 		if (strcmp(path, "/") == 0 || strlen(path) == 0) {
-			REPORT;
 			// For the special case of "/" or "" (maybe that last one should be invalid...), return the root directory.
 			DirEntry &rootdir = getRoot(offset);
 			if (out)
 				*out = rootdir;
 
-			REPORT;
 			DBGF(FATFINDH, "Returning the root: %s", std::string(rootdir).c_str());
 			FF_EXIT;
-			REPORT;
 			return 0;
 		}
 
@@ -299,14 +294,15 @@ namespace Armaz::ThornFAT {
 		ENTER;
 
 		off_t start = superblock.startBlock * superblock.blockSize;
-		printf("%llu * %llu = %llu\n", superblock.startBlock, superblock.blockSize, superblock.startBlock * superblock.blockSize);
+		// printf("%llu * %llu = %llu\n", superblock.startBlock, superblock.blockSize, superblock.startBlock * superblock.blockSize);
 		if (offset) {
 			DBGFE("getRoot", "Setting offset to " BLR, start);
 			*offset = start;
 		}
 
 		// If the root directory is already cached, we can simply return a reference to the cached entry.
-		if (root.startBlock != UNUSABLE) {
+		if (root.startBlock != UNUSABLE && root.startBlock != 0) {
+			DBG("getRoot", "Start block isn't UNUSABLE; returning cached.");
 			EXIT;
 			return root;
 		}
@@ -315,6 +311,7 @@ namespace Armaz::ThornFAT {
 		if (status < 0)
 			DBGF(GETROOTH, "Reading failed: %s", STRERR(status));
 
+		DBGF("getRoot", "Returning read root: %s", std::string(root).c_str());
 		EXIT;
 		return root;
 	}
@@ -1124,13 +1121,15 @@ namespace Armaz::ThornFAT {
 		return true;
 	}
 
-	bool ThornFATDriver::initData(size_t, size_t table_size) {
+	bool ThornFATDriver::initData(size_t table_size, size_t block_size) {
 		root.reset();
 		root.name.str[0] = '.';
 		root.length = 2 * sizeof(DirEntry);
 		root.startBlock = table_size + 1;
 		root.type = FileType::Directory;
+		writeOffset = block_size * root.startBlock;
 		ssize_t status;
+		DBGN("initData", "writeOffset:", writeOffset);
 		if ((status = write(root)) < 0) {
 			DBGN("initData", "Failed to write. Status:", status);
 			return false;
@@ -1653,11 +1652,8 @@ namespace Armaz::ThornFAT {
 		DirEntry found;
 		off_t file_offset;
 
-		REPORT;
 		int status = find(-1, path, &found, &file_offset);
 		SCHECK(READDIRH, "find failed");
-
-		REPORT;
 
 		if (!found.isDirectory()) {
 			// You can't really use readdir with a file.
@@ -1665,35 +1661,29 @@ namespace Armaz::ThornFAT {
 			DBG_ON();
 			return -ENOTDIR;
 		}
-		REPORT;
 
 		if (!isRoot(found))
 			// Only the root directory has a "." entry stored in the disk image.
 			// For other directories, it has to be added dynamically.
 			filler(".", 0);
 
-		REPORT;
 		DBGF(READDIRH, "Found directory at offset " BLR ": " BSR, file_offset, std::string(found).c_str());
 
 		std::vector<DirEntry> entries;
 		std::vector<off_t> offsets;
 
-		REPORT;
 		status = readDir(found, entries, &offsets);
 		SCHECK(READDIRH, "readDir failed");
 		const size_t count = entries.size();
 		DBGF(READDIRH, "Count: " BULR, count);
-		REPORT;
 
 		size_t excluded = 0;
 #ifdef READDIR_MAX_INCLUDE
 		size_t included = 0;
 		int last_index = -1;
 #endif
-		REPORT;
 
 		for (size_t i = 0; i < count; ++i) {
-			REPORT;
 			const DirEntry &entry = entries[i];
 			DBGF(READDIRH, "[] %s: %s", isFree(entry)? "free" : "not free", std::string(entry).c_str());
 			if (!isFree(entry)) {
@@ -1706,10 +1696,8 @@ namespace Armaz::ThornFAT {
 				DBGF(READDIRH, "Including entry %s at offset %ld.", entry.name.str, offsets[i]);
 #endif
 			} else
-				excluded++;
+				++excluded;
 		}
-
-		REPORT;
 
 #ifdef READDIR_MAX_INCLUDE
 		if (READDIR_MAX_INCLUDE < included)
@@ -1719,12 +1707,10 @@ namespace Armaz::ThornFAT {
 			DBGF(READDIRH, "Including entry %s at offset %ld.", entries[last_index].name.str, offsets[last_index]);
 #endif
 
-		REPORT;
 		if (0 < excluded) {
 			DBGF(READDIRH, "Excluding " BULR " freed entr%s.", PLURALY(excluded));
 		}
 
-		REPORT;
 		DBGE(READDIRH, "Done.");
 		DBG_ON();
 		return 0;
@@ -1812,7 +1798,7 @@ namespace Armaz::ThornFAT {
 			return false;
 		if (!initFAT(table_size, block_size))
 			return false;
-		if (!initData(block_count, table_size))
+		if (!initData(table_size, block_size))
 			return false;
 		return true;
 	}

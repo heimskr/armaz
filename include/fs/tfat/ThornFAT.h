@@ -30,6 +30,7 @@ namespace Armaz::ThornFAT {
 		uint32_t blockSize;
 		/** The block containing the root directory. */
 		block_t startBlock;
+		operator std::string() const;
 	} __attribute__((packed));
 
 	struct Times {
@@ -192,7 +193,7 @@ namespace Armaz::ThornFAT {
 			int writeFAT(block_t block, size_t block_offset);
 
 			bool initFAT(size_t table_size, size_t block_size);
-			bool initData(size_t block_count, size_t table_size);
+			bool initData(size_t table_size, size_t block_size);
 
 			bool hasFree(const size_t);
 			ssize_t countFree();
@@ -209,7 +210,7 @@ namespace Armaz::ThornFAT {
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), offset + i * sizeof(T));
 					if (status < 0) {
-						printf("[ThornFATDriver::writeInt] Writing failed: %ld\n", status);
+						printf("[ThornFATDriver::writeMany] Writing failed: %ld\n", status);
 						return status;
 					}
 				}
@@ -223,7 +224,7 @@ namespace Armaz::ThornFAT {
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), writeOffset);
 					if (status < 0) {
-						printf("[ThornFATDriver::writeInt] Writing failed: %ld\n", status);
+						printf("[ThornFATDriver::writeMany] Writing failed: %ld\n", status);
 						return status;
 					}
 					writeOffset += sizeof(T);
@@ -252,7 +253,7 @@ namespace Armaz::ThornFAT {
 				return descriptor - 1;
 			}
 
-			static char nothing[sizeof(DirEntry)];
+			static const char nothing[sizeof(DirEntry)];
 
 		public:
 			virtual int rename(const char *path, const char *newpath) override;
