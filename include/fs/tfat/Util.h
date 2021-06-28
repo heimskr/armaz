@@ -6,10 +6,10 @@
 #include <string>
 
 // #define DEBUG_EVERYTHING
-#define DEBUG_EXTRA
+// #define DEBUG_EXTRA
 // #define DEBUG_SETPTR
 #define DEBUG_FATFIND
-#define DEBUG_DIRREAD
+// #define DEBUG_DIRREAD
 #define DEBUG_NEWFILE
 #define DEBUG_UTIMENS
 #define INDENT_WIDTH 2

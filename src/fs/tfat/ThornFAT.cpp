@@ -58,31 +58,23 @@ namespace Armaz::ThornFAT {
 			return 0;
 		}
 
-		REPORT;
-		size_t count;
-		size_t i;
+		size_t count, i;
 		bool at_end;
-		REPORT;
 
 		std::vector<DirEntry> entries;
 		std::vector<off_t> offsets;
 		std::string newpath, remaining = path;
 
-		REPORT;
 		// Start at the root.
 		DirEntry dir = getRoot();
 		off_t dir_offset = superblock.startBlock * superblock.blockSize;
-		REPORT;
 
 		bool done = false;
 
-		REPORT;
 		do {
-			REPORT;
 			std::optional<std::string> search = Util::pathFirst(remaining, &newpath);
 			remaining = newpath;
 			at_end = newpath.empty() || !search.has_value();
-			REPORT;
 
 			if (at_end && get_parent) {
 				// We just want the containing directory, thank you very much.
@@ -98,34 +90,28 @@ namespace Armaz::ThornFAT {
 				FF_EXIT;
 				return 0;
 			}
-			REPORT;
 
 			if (!search.has_value()) {
 				FF_EXIT;
 				return -ENOENT;
 			}
-			REPORT;
 
 			int status = readDir(dir, entries, &offsets);
-			REPORT;
 			count = entries.size();
 			if (status < 0) {
 				WARN(FATFINDH, "Couldn't read directory. Status: " BDR " (%s)", status, STRERR(status));
 				FF_EXIT;
 				return status;
 			}
-			REPORT;
 
 			// If we find any matches in the following for loop, this is set to 1.
 			// If it stays 0, there were no (non-free) matches in the directory and the search failed.
 			int found = 0;
 
 			for (i = 0; i < count; i++) {
-				REPORT;
 				DirEntry &entry = entries[i];
 				char *fname = entry.name.str;
 				if (search == fname && !isFree(entry)) {
-					REPORT;
 					if (entry.isFile()) {
 						if (at_end) {
 							// We're at the end of the path and it's a file!
@@ -147,7 +133,6 @@ namespace Armaz::ThornFAT {
 						FF_EXIT;
 						return -ENOTDIR;
 					} else if (at_end) {
-						REPORT;
 						// This is a directory at the end of the path. Success.
 						DBG(FATFINDH, "Returning directory at the end.");
 						DBG2(FATFINDH, "  Name:", entry.name.str);
@@ -160,7 +145,6 @@ namespace Armaz::ThornFAT {
 						FF_EXIT;
 						return 0;
 					}
-					REPORT;
 
 					// This is a directory, but we're not at the end yet. Search within this directory next.
 					dir = entry;
@@ -168,9 +152,7 @@ namespace Armaz::ThornFAT {
 					found = 1;
 					break;
 				}
-				REPORT;
 			}
-			REPORT;
 
 			done = remaining.empty();
 
@@ -180,9 +162,7 @@ namespace Armaz::ThornFAT {
 				FF_EXIT;
 				return -ENOENT;
 			}
-			REPORT;
 		} while (!done);
-		REPORT;
 		// It shouldn't be possible to get here.
 		WARNS(FATFINDH, "Reached the end of the function " UDARR " " IDS("EIO"));
 		FF_EXIT;
