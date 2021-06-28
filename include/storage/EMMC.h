@@ -51,9 +51,9 @@ namespace Armaz {
 			ssize_t read(void *buffer, size_t count);
 			ssize_t write(const void *buffer, size_t count);
 
-			uint64_t seek(uint64_t offset);
+			uint64_t seek(uint64_t new_offset);
 
-			virtual ssize_t read(void *buffer, size_t size, size_t offset) override;
+			virtual ssize_t read(void *buffer, size_t size, size_t byte_offset) override;
 			virtual ssize_t write(const void *buffer, size_t bytes, size_t byte_offset) override;
 
 			const uint32_t * getID();
@@ -75,20 +75,20 @@ namespace Armaz {
 			bool resetDat();
 #endif
 
-			void issueCommandInt(uint32_t cmd_reg, uint32_t argument, int timeout);
+			void issueCommandInt(uint32_t cmd_reg, uint64_t argument, int timeout);
 #ifndef USE_SDHOST
 			void handleCardInterrupt();
 			void handleInterrupts();
 #endif
-			bool issueCommand(uint32_t command, uint32_t argument, int timeout = 500000);
+			bool issueCommand(uint32_t command, uint64_t argument, int timeout = 500000);
 
 			int cardReset();
 			int cardInit();
 
 			int ensureDataMode();
-			bool doDataCommand(int is_write, uint8_t *buf, size_t buf_size, uint32_t block);
-			size_t doRead(uint8_t *buf, size_t buf_size, uint32_t block);
-			size_t doWrite(uint8_t *buf, size_t buf_size, uint32_t block);
+			bool doDataCommand(int is_write, uint8_t *buf, size_t buf_size, uint64_t block);
+			size_t doRead(uint8_t *buf, size_t buf_size, uint64_t block);
+			size_t doWrite(uint8_t *buf, size_t buf_size, uint64_t block);
 
 #ifndef USE_SDHOST
 			int timeoutWait(unsigned reg, unsigned mask, int value, unsigned usec);

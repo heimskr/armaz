@@ -179,8 +179,10 @@ namespace Armaz::ThornFAT::Util {
 #define DIE(s, f, a...) { printf(MKPAIR(MKCTAG(A_RED), MKCHEADER(A_RED)) DIE_PREFIX f LOGEND, LOGSET(s), a); Kernel::perish(); }
 #define DIES(s, m) { DIE(s, "%s", m); }
 #define CHECK(s, f, a...) { if (status) { EXIT; DIE(s, f, a); } }
+#define CHECKL0(s, f, a...) { if (status < 0) { EXIT; DIE(s, f, a); } }
 // #define CHECKS(s, e) CHECK(s, "%s: %s", e, STRERR(errno))
 #define CHECKS(s, e) CHECK(s, "%s", e)
+#define CHECKSL0(s, e) CHECKL0(s, "%s", e)
 #define WARN(s, f, a...) LOGPRINT(MKPAIR(MKCTAG(A_YELLOW), MKCHEADER(A_YELLOW)) A_YELLOW f LOGEND, LOGSET(s), a)
 #define WARNS(s, m)      WARN(s, "%s", m)
 #define SUCC(s, f, a...) LOGPRINT(MKPAIR(MKCTAG(A_GREEN), MKCHEADER(A_GREEN)) A_GREEN f LOGEND, LOGSET(s), a)

@@ -30,7 +30,6 @@ namespace Armaz::ThornFAT {
 		uint32_t blockSize;
 		/** The block containing the root directory. */
 		block_t startBlock;
-		void print() const;
 	} __attribute__((packed));
 
 	struct Times {
@@ -206,11 +205,11 @@ namespace Armaz::ThornFAT {
 
 			template <typename T>
 			int writeMany(T n, size_t count, off_t offset) {
-				int status;
+				ssize_t status;
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), offset + i * sizeof(T));
-					if (status != 0) {
-						printf("[ThornFATDriver::writeInt] Writing failed: %s\n", strerror(status));
+					if (status < 0) {
+						printf("[ThornFATDriver::writeInt] Writing failed: %ld\n", status);
 						return -status;
 					}
 				}
@@ -219,12 +218,12 @@ namespace Armaz::ThornFAT {
 
 			template <typename T>
 			int writeMany(T n, size_t count) {
-				int status;
+				ssize_t status;
 				// const size_t old_offset = writeOffset;
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), writeOffset);
-					if (status != 0) {
-						printf("[ThornFATDriver::writeInt] Writing failed: %s\n", strerror(status));
+					if (status < 0) {
+						printf("[ThornFATDriver::writeInt] Writing failed: %ld\n", status);
 						return -status;
 					}
 					writeOffset += sizeof(T);
@@ -235,10 +234,10 @@ namespace Armaz::ThornFAT {
 
 			template <typename T>
 			int write(const T &n) {
-				int status = partition->write(&n, sizeof(T), writeOffset);
-				if (status != 0) {
-					printf("[ThornFATDriver::write] Writing failed: %s\n", strerror(status));
-					return -status;
+				ssize_t status = partition->write(&n, sizeof(T), writeOffset);
+				if (status < 0) {
+					printf("[ThornFATDriver::write] Writing failed: %ld\n", status);
+					return status;
 				}
 				// printf("[S] writeOffset: %lu -> %lu\n", writeOffset, writeOffset + sizeof(T));
 				writeOffset += sizeof(T);

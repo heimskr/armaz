@@ -2,6 +2,7 @@
 #include <string>
 #include <string.h>
 
+#include "aarch64/Timer.h"
 #include "fs/tfat/ThornFAT.h"
 #include "fs/tfat/Util.h"
 #include "lib/printf.h"
@@ -18,8 +19,13 @@ namespace Armaz::ThornFAT {
 
 	int ThornFATDriver::readSuperblock(Superblock &out) {
 		HELLO("");
-		int status = partition->read(&out, sizeof(Superblock), 0);
-		CHECKS(RSUPERBLOCKH, "Couldn't read superblock");
+		memset(&out, 0, sizeof(Superblock));
+		DBGF("rSb", "magic = 0x%x, blockCount = %lu, fatBlocks = %u, blockSize = %u, startBlock = %d",
+			out.magic, out.blockCount, out.fatBlocks, out.blockSize, out.startBlock);
+		ssize_t status = partition->read(&out, sizeof(Superblock), 0);
+		DBGF("rSb", "status = %ld, magic = 0x%x, blockCount = %lu, fatBlocks = %u, blockSize = %u, startBlock = %d",
+			status, out.magic, out.blockCount, out.fatBlocks, out.blockSize, out.startBlock);
+		CHECKSL0(RSUPERBLOCKH, "Couldn't read superblock");
 		// if (status != 0) {
 		// 	DEBUG("[ThornFATDriver::readSuperblock] Reading failed: %s\n", strerror(status));
 		// }
@@ -259,8 +265,8 @@ namespace Armaz::ThornFAT {
 		// lseek(imgfd, offset, SEEK_SET);
 		// IFERRNOXC(WARN(WRENTRYH, "lseek() failed " UDARR " " DSR, strerror(errno)));
 
-		int status = partition->write(&dir, sizeof(DirEntry), offset);
-		if (status != 0) {
+		ssize_t status = partition->write(&dir, sizeof(DirEntry), offset);
+		if (status < 0) {
 			DBGF(WRENTRYH, "Writing failed: %s", strerror(status));
 			return -status;
 		}
@@ -305,8 +311,8 @@ namespace Armaz::ThornFAT {
 			return root;
 		}
 
-		int status = partition->read(&root, sizeof(DirEntry), start);
-		if (status)
+		ssize_t status = partition->read(&root, sizeof(DirEntry), start);
+		if (status < 0)
 			DBGF(GETROOTH, "Reading failed: %s", STRERR(status));
 
 		EXIT;
@@ -445,7 +451,7 @@ namespace Armaz::ThornFAT {
 		while (0 < remaining) {
 			if (remaining <= bs) {
 				checkBlock(block);
-				int status = partition->read(ptr, remaining, block * bs);
+				ssize_t status = partition->read(ptr, remaining, block * bs);
 				SCHECK(FILEREADH, "Couldn't read from partition");
 				ptr += remaining;
 				remaining = 0;
@@ -502,7 +508,7 @@ namespace Armaz::ThornFAT {
 				} else {
 					checkBlock(block);
 					DBGF(FILEREADH, "block * bs = " BUR, block * bs);
-					int status = partition->read(ptr, bs, block * bs);
+					ssize_t status = partition->read(ptr, bs, block * bs);
 					SCHECK(FILEREADH, "Couldn't read from partition");
 					ptr += bs;
 					remaining -= bs;
@@ -999,7 +1005,7 @@ namespace Armaz::ThornFAT {
 
 		position += remaining;
 		static char empty[1024] = {0};
-		int status;
+		ssize_t status;
 		while (sizeof(empty) <= diff) {
 			status = partition->write(empty, sizeof(empty), position);
 			SCHECK(ZEROOUTFREEH, "Writing to partition failed");
@@ -1060,7 +1066,7 @@ namespace Armaz::ThornFAT {
 
 	block_t ThornFATDriver::readFAT(size_t block_offset) {
 		block_t out;
-		int status = partition->read(&out, sizeof(block_t), superblock.blockSize + block_offset * sizeof(block_t));
+		ssize_t status = partition->read(&out, sizeof(block_t), superblock.blockSize + block_offset * sizeof(block_t));
 		SCHECK("readFAT", "Reading failed");
 		DBGFE("readFAT", "Adjusted offset: " BULR " " DARR " " BDR,
 			superblock.blockSize + block_offset * sizeof(block_t), out);
@@ -1069,7 +1075,7 @@ namespace Armaz::ThornFAT {
 
 	int ThornFATDriver::writeFAT(block_t block, size_t block_offset) {
 		// DEBUG("writeFAT adjusted offset: %lu <- %d\n", superblock.blockSize + block_offset * sizeof(block_t), block);
-		int status = partition->write(&block, sizeof(block_t), superblock.blockSize + block_offset * sizeof(block_t));
+		ssize_t status = partition->write(&block, sizeof(block_t), superblock.blockSize + block_offset * sizeof(block_t));
 		SCHECK("writeFAT", "Writing failed");
 		return 0;
 	}
@@ -1174,7 +1180,7 @@ namespace Armaz::ThornFAT {
 
 		DirEntry dest_entry, src_entry;
 		off_t dest_offset, src_offset;
-		int status;
+		ssize_t status;
 
 		// It's okay if the destination doesn't exist, but the source is required to exist.
 		status = find(-1, srcpath, &src_entry, &src_offset, false, nullptr);
@@ -1309,7 +1315,7 @@ namespace Armaz::ThornFAT {
 		off_t file_offset;
 
 		DBG(WRITEH, "Finding file");
-		int status = find(-1, path, &file, &file_offset);
+		ssize_t status = find(-1, path, &file, &file_offset);
 		SCHECK(WRITEH, "fat_find failed");
 		DBG2(WRITEH, "Found file:", file.name.str);
 
@@ -1353,7 +1359,7 @@ namespace Armaz::ThornFAT {
 			to_write = bs - offset_left;
 			DBGF(WRITEH, "Writing " BLR " block%s to block-align.", PLURALS(to_write));
 			status = partition->write(buffer, to_write, position);
-			CHECKS(WRITEH, "Couldn't write to block-align");
+			CHECKSL0(WRITEH, "Couldn't write to block-align");
 			position += to_write;
 			DBGH(WRITEH, "Now at offset", block * bs + offset_left + to_write);
 			SCHECK(WRITEH, "Couldn't write from buffer");
@@ -1516,7 +1522,7 @@ namespace Armaz::ThornFAT {
 		DirEntry file;
 		off_t file_offset;
 
-		int status = find(-1, path, &file, &file_offset);
+		ssize_t status = find(-1, path, &file, &file_offset);
 		SCHECK(READH, "fat_find failed");
 
 		size_t length = file.length;

@@ -738,7 +738,7 @@ namespace Armaz {
 		return true;
 	}
 
-	void EMMCDevice::issueCommandInt(uint32_t cmd_reg, uint32_t argument, int timeout) {
+	void EMMCDevice::issueCommandInt(uint32_t cmd_reg, uint64_t argument, int timeout) {
 		lastCmdReg = cmd_reg;
 		lastCmdSuccess = 0;
 
@@ -772,13 +772,14 @@ namespace Armaz {
 
 		write32(EMMC_BLKSIZECNT, blockSize | (blocksToTransfer << 16));
 
-		// Set argument 1 reg
-		write32(EMMC_ARG1, argument);
+		// Set argument registers
+		write32(EMMC_ARG1, argument & 0xffffffff);
+		write32(EMMC_ARG2, argument >> 32);
 
-		// Set command reg
+		// Set command register
 		write32(EMMC_CMDTM, cmd_reg);
 
-		//usDelay(2000);
+		usDelay(2000);
 
 		// Wait for command complete interrupt
 		timeoutWait(EMMC_INTERRUPT, 0x8001, 1, timeout);
@@ -798,7 +799,7 @@ namespace Armaz {
 			return;
 		}
 
-		//usDelay(2000);
+		usDelay(2000);
 
 		// Get response data
 		switch (cmd_reg & SD_CMD_RSPNS_TYPE_MASK) {
@@ -849,7 +850,7 @@ namespace Armaz {
 				}
 
 				// Transfer the block
-				assert(blockSize <= 1024);		// internal FIFO size of EMMC
+				assert(blockSize <= 1024); // internal FIFO size of EMMC
 				size_t length = blockSize;
 				assert((length & 3) == 0);
 
@@ -1083,7 +1084,7 @@ namespace Armaz {
 #endif	// #ifndef USE_SDHOST
 
 
-	bool EMMCDevice::issueCommand(uint32_t command, uint32_t argument, int timeout) {
+	bool EMMCDevice::issueCommand(uint32_t command, uint64_t argument, int timeout) {
 #ifndef USE_SDHOST
 		// First, handle any pending interrupts
 		handleInterrupts();
@@ -1934,7 +1935,7 @@ namespace Armaz {
 		return 0;
 	}
 
-	bool EMMCDevice::doDataCommand(int is_write, uint8_t *buffer_, size_t buf_size, uint32_t block) {
+	bool EMMCDevice::doDataCommand(int is_write, uint8_t *buffer_, size_t buf_size, uint64_t block) {
 		// PLSS table 4.20 - SDSC cards use byte addresses rather than block addresses
 		if (!cardSupportsSDHC)
 			block *= SD_BLOCK_SIZE;
@@ -1989,7 +1990,7 @@ namespace Armaz {
 		return true;
 	}
 
-	size_t EMMCDevice::doRead(uint8_t *buffer_, size_t buf_size, uint32_t block) {
+	size_t EMMCDevice::doRead(uint8_t *buffer_, size_t buf_size, uint64_t block) {
 		// Check the status of the card
 		if (ensureDataMode() != 0)
 			return -1;
@@ -2008,7 +2009,7 @@ namespace Armaz {
 		return buf_size;
 	}
 
-	size_t EMMCDevice::doWrite(uint8_t *buffer_, size_t buf_size, uint32_t block) {
+	size_t EMMCDevice::doWrite(uint8_t *buffer_, size_t buf_size, uint64_t block) {
 		// Check the status of the card
 		if (ensureDataMode() != 0)
 			return -1;
@@ -2054,6 +2055,7 @@ namespace Armaz {
 
 	ssize_t EMMCDevice::readBytes(void *buffer, size_t bytes, size_t byte_offset) {
 		assert(bytes < LONG_MAX);
+		const size_t original_bytes = bytes;
 		size_t total_bytes_read = 0;
 		size_t lba = byte_offset / SD_BLOCK_SIZE;
 		offset %= SD_BLOCK_SIZE;
@@ -2071,11 +2073,12 @@ namespace Armaz {
 			++lba;
 		}
 
-		return bytes;
+		return original_bytes;
 	}
 
 	ssize_t EMMCDevice::writeBytes(const void *buffer, size_t bytes, size_t byte_offset) {
 		assert(bytes < LONG_MAX);
+		const size_t original_bytes = bytes;
 		size_t lba = byte_offset / SD_BLOCK_SIZE;
 		byte_offset %= SD_BLOCK_SIZE;
 
@@ -2119,7 +2122,7 @@ namespace Armaz {
 			++lba;
 		}
 
-		return bytes;
+		return original_bytes;
 	}
 
 	ssize_t EMMCDevice::read(void *buffer, size_t bytes, size_t byte_offset) {
