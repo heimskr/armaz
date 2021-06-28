@@ -1080,7 +1080,7 @@ namespace Armaz::ThornFAT {
 		return 0;
 	}
 
-	void ThornFATDriver::initFAT(size_t table_size, size_t block_size) {
+	bool ThornFATDriver::initFAT(size_t table_size, size_t block_size) {
 		size_t written = 0;
 		DBGF("initFAT", "writeOffset = %lu, table_size = %lu", writeOffset, table_size);
 		DBGF("initFAT", "sizeof: Filename[%lu], Times[%lu], block_t[%lu], FileType[%lu], mode_t[%lu], DirEntry[%lu], "
@@ -1091,35 +1091,57 @@ namespace Armaz::ThornFAT {
 		size_t position = block_size;
 		size_t remaining = table_size * block_size;
 		static char zeros[512] = {};
+		ssize_t status;
 		while (512 <= remaining) {
-			partition->write(zeros, 512, position);
+			if ((status = partition->write(zeros, 512, position)) < 0) {
+				DBGN("initFAT", "Failed to write. Status:", status);
+				return false;
+			}
 			position += 512;
 			remaining -= 512;
 			DBGN("initFAT", "Remaining:", remaining);
 		}
 
-		partition->write(zeros, remaining, position);
+		if ((status = partition->write(zeros, remaining, position)) < 0) {
+			DBGN("initFAT", "Failed to write. Status:", status);
+			return false;
+		}
 
 		// These blocks point to the FAT, so they're not valid regions to write data.
 		writeOffset = block_size;
 		DBGF("initFAT", "Writing UNUSABLE %lu times to %lu", table_size + 1, writeOffset);
-		writeMany(UNUSABLE, table_size + 1);
+		if ((status = writeMany(UNUSABLE, table_size + 1)) < 0) {
+			DBGN("initFAT", "Failed to write. Status:", status);
+			return false;
+		}
 		written += table_size + 1;
 		DBGF("initFAT", "Writing FINAL 1 time to %lu", writeOffset);
-		writeMany(FINAL, 1);
+		if ((status = writeMany(FINAL, 1)) < 0) {
+			DBGN("initFAT", "Failed to write. Status:", status);
+			return false;
+		}
 		++written;
+		return true;
 	}
 
-	void ThornFATDriver::initData(size_t, size_t table_size) {
+	bool ThornFATDriver::initData(size_t, size_t table_size) {
 		root.reset();
 		root.name.str[0] = '.';
 		root.length = 2 * sizeof(DirEntry);
 		root.startBlock = table_size + 1;
 		root.type = FileType::Directory;
-		write(root);
+		ssize_t status;
+		if ((status = write(root)) < 0) {
+			DBGN("initData", "Failed to write. Status:", status);
+			return false;
+		}
 		root.name.str[1] = '.';
-		write(root);
+		if ((status = write(root)) < 0) {
+			DBGN("initData", "Failed to write. Status:", status);
+			return false;
+		}
 		root.name.str[1] = '\0';
+		return true;
 	}
 
 	bool ThornFATDriver::hasFree(const size_t count) {
@@ -1786,9 +1808,12 @@ namespace Armaz::ThornFAT {
 		};
 
 		writeOffset = 0;
-		write(superblock);
-		initFAT(table_size, block_size);
-		initData(block_count, table_size);
+		if (write(superblock) < 0)
+			return false;
+		if (!initFAT(table_size, block_size))
+			return false;
+		if (!initData(block_count, table_size))
+			return false;
 		return true;
 	}
 

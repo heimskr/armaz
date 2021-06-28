@@ -18,7 +18,7 @@ namespace Armaz {
 		if (length < byte_offset + size)
 			Kernel::panic("Read exceeds length (length = %llu, byte_offset = %llu, size = %llu)",
 				length, byte_offset, size);
-		printf("offset + byte_offset = %lu + %lu = %lu\n", offset, byte_offset, offset + byte_offset);
+		// printf("offset + byte_offset = %lu + %lu = %lu\n", offset, byte_offset, offset + byte_offset);
 		return parent->read(buffer, size, offset + byte_offset);
 	}
 

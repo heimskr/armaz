@@ -191,8 +191,8 @@ namespace Armaz::ThornFAT {
 			block_t readFAT(size_t block_offset);
 			int writeFAT(block_t block, size_t block_offset);
 
-			void initFAT(size_t table_size, size_t block_size);
-			void initData(size_t block_count, size_t table_size);
+			bool initFAT(size_t table_size, size_t block_size);
+			bool initData(size_t block_count, size_t table_size);
 
 			bool hasFree(const size_t);
 			ssize_t countFree();
@@ -204,36 +204,36 @@ namespace Armaz::ThornFAT {
 			bool isRoot(const DirEntry &);
 
 			template <typename T>
-			int writeMany(T n, size_t count, off_t offset) {
+			ssize_t writeMany(T n, size_t count, off_t offset) {
 				ssize_t status;
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), offset + i * sizeof(T));
 					if (status < 0) {
 						printf("[ThornFATDriver::writeInt] Writing failed: %ld\n", status);
-						return -status;
+						return status;
 					}
 				}
-				return 0;
+				return status;
 			}
 
 			template <typename T>
-			int writeMany(T n, size_t count) {
+			ssize_t writeMany(T n, size_t count) {
 				ssize_t status;
 				// const size_t old_offset = writeOffset;
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), writeOffset);
 					if (status < 0) {
 						printf("[ThornFATDriver::writeInt] Writing failed: %ld\n", status);
-						return -status;
+						return status;
 					}
 					writeOffset += sizeof(T);
 				}
 				// printf("[M] writeOffset: %lu -> %lu (%lu * %lu)\n", old_offset, writeOffset, sizeof(T), count);
-				return 0;
+				return status;
 			}
 
 			template <typename T>
-			int write(const T &n) {
+			ssize_t write(const T &n) {
 				ssize_t status = partition->write(&n, sizeof(T), writeOffset);
 				if (status < 0) {
 					printf("[ThornFATDriver::write] Writing failed: %ld\n", status);
@@ -241,7 +241,7 @@ namespace Armaz::ThornFAT {
 				}
 				// printf("[S] writeOffset: %lu -> %lu\n", writeOffset, writeOffset + sizeof(T));
 				writeOffset += sizeof(T);
-				return 0;
+				return status;
 			}
 
 			static size_t tableSize(size_t block_count, size_t block_size);

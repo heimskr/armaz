@@ -2058,7 +2058,7 @@ namespace Armaz {
 		const size_t original_bytes = bytes;
 		size_t total_bytes_read = 0;
 		size_t lba = byte_offset / SD_BLOCK_SIZE;
-		offset %= SD_BLOCK_SIZE;
+		byte_offset %= SD_BLOCK_SIZE;
 		char read_buffer[SD_BLOCK_SIZE];
 
 		while (0 < bytes) {
