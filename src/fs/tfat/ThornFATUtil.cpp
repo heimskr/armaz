@@ -1,4 +1,5 @@
 #include "util.h"
+#include "aarch64/Timer.h"
 #include "fs/tfat/ThornFAT.h"
 #include "fs/tfat/Util.h"
 
@@ -122,8 +123,10 @@ namespace Armaz::ThornFAT::Util {
  * @param  *s1  An info string displayed before the directory entry.
  */
 void dbg(const char *source, int line, const char *s, const char *s1) {
-	if (DEBUG_ENABLED)
+	if (DEBUG_ENABLED) {
 		printf(LOGPAIR " %s" LOGEND, DBGLOGSET(s), s1);
+		Armaz::Timers::waitMicroseconds(100'000);
+	}
 }
 
 /**
@@ -133,8 +136,10 @@ void dbg(const char *source, int line, const char *s, const char *s1) {
  * @param  *s2  A second info string.
  */
 void dbg2(const char *source, int line, const char *s, const char *s1, const char *s2) {
-	if (DEBUG_ENABLED)
+	if (DEBUG_ENABLED) {
 		printf(LOGPAIR " %s " BSTR LOGEND, DBGLOGSET(s), s1, s2);
+		Armaz::Timers::waitMicroseconds(100'000);
+	}
 }
 
 /**
@@ -144,8 +149,10 @@ void dbg2(const char *source, int line, const char *s, const char *s1, const cha
  * @param   n   A number.
  */
 void dbgn(const char *source, int line, const char *s, const char *s1, int64_t n) {
-	if (DEBUG_ENABLED)
+	if (DEBUG_ENABLED) {
 		printf(LOGPAIR " %s " BLR LOGEND, DBGLOGSET(s), s1, n);
+		Armaz::Timers::waitMicroseconds(100'000);
+	}
 }
 
 /**
@@ -155,35 +162,10 @@ void dbgn(const char *source, int line, const char *s, const char *s1, int64_t n
  * @param   n   A number.
  */
 void dbgh(const char *source, int line, const char *s, const char *s1, int64_t n) {
-	if (DEBUG_ENABLED)
+	if (DEBUG_ENABLED) {
 		printf(LOGPAIR " %s " IBS("0x%lx") LOGEND, DBGLOGSET(s), s1, n);
-}
-
-/**
- * Prints a stacktrace to the log.
- */
-void dbgtrace(const char *source, int line, const char *s) {
-	(void) source;
-	(void) line;
-	(void) s;
-#ifdef ENABLE_BACKTRACE
-	if (!DEBUG_ENABLED || logfile == NULL)
-		return;
-
-	void *callstack[64];
-	size_t count = backtrace(callstack, 64);
-	char **strs = backtrace_symbols_fmt(callstack, count, "%n");
-	fprintf(logfile, MKPAIR(MKCTAG(A_CYAN), MKCHEADER(A_CYAN)) A_CYAN, DBGLOGSET(s));
-	for (size_t i = 1; i < count; i++) {
-		if (strcmp(strs[i], "fuse_fs_create") == 0)
-			break;
-
-		if (i > 1) fprintf(logfile, " " ULARR " ");
-		fprintf(logfile, "%s", strs[i]);
+		Armaz::Timers::waitMicroseconds(100'000);
 	}
-
-	fprintf(logfile, LOGEND);
-#endif
 }
 
 void indent(int offset) {

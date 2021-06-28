@@ -5,8 +5,8 @@
 #include <optional>
 #include <string>
 
-// #define DEBUG_EVERYTHING
-// #define DEBUG_EXTRA
+#define DEBUG_EVERYTHING
+#define DEBUG_EXTRA
 // #define DEBUG_SETPTR
 #define DEBUG_FATFIND
 // #define DEBUG_DIRREAD
@@ -22,7 +22,6 @@ void dbg (const char *source, int line, const char *s, const char *s1);
 void dbg2(const char *source, int line, const char *s, const char *s1, const char *s2);
 void dbgn(const char *source, int line, const char *s, const char *s1, int64_t n);
 void dbgh(const char *source, int line, const char *s, const char *s1, int64_t n);
-void dbgtrace(const char *source, int line, const char *s);
 void indent(int offset);
 
 namespace Armaz::ThornFAT::Util {
@@ -173,10 +172,9 @@ namespace Armaz::ThornFAT::Util {
 #define DBG2(s, s1, s2)	dbg2(FILELINE, (s), (s1), (s2))
 #define DBGN(s, s1, n)	dbgn(FILELINE, (s), (s1), (n))
 #define DBGH(s, s1, n)	dbgh(FILELINE, (s), (s1), (n))
-#define DBGT(s)			dbgtrace(FILELINE, (s))
 #define LOGPRINT(a...) { IFLOGDBG { printf(a); } }
 #define DBGF(s, f, a...) { LOGPRINT(LOGPAIR " " f "\n", LOGSET(s), a); }
-#define DIE(s, f, a...) { printf(MKPAIR(MKCTAG(A_RED), MKCHEADER(A_RED)) DIE_PREFIX f LOGEND, LOGSET(s), a); Kernel::perish(); }
+#define DIE(s, f, a...) { printf(MKPAIR(MKCTAG(A_RED), MKCHEADER(A_RED)) DIE_PREFIX f LOGEND, LOGSET(s), a); Timers::waitMicroseconds(10'000'000); Kernel::perish(); }
 #define DIES(s, m) { DIE(s, "%s", m); }
 #define CHECK(s, f, a...) { if (status) { EXIT; DIE(s, f, a); } }
 #define CHECKL0(s, f, a...) { if (status < 0) { EXIT; DIE(s, f, a); } }

@@ -14,6 +14,7 @@ namespace Armaz {
 	static EMMCDevice emmc;
 	static MBR mbr;
 	static bool mbr_read = false;
+	static std::string cwd = "/";
 	std::unique_ptr<Partition> partition;
 	std::unique_ptr<ThornFAT::ThornFATDriver> driver;
 
@@ -96,16 +97,14 @@ namespace Armaz {
 					Error("Couldn't create ThornFAT filesystem.");
 			} else
 				return usage();
-		} else if (front == "readdir") {
+		} else if (front == "ls") {
 			CheckDriver();
-
-			const char *path = 2 <= pieces.size()? pieces[1].c_str() : "/";
-
-			int status;
-			if ((status = driver->readdir(path, [](const char *str, off_t offset) {
+			const std::string path = 2 <= pieces.size()? FS::simplifyPath(cwd, pieces[1]) : cwd;
+			const int status = driver->readdir(path.c_str(), [](const char *str, off_t offset) {
 				printf("- %s @ %lld\n", str, offset);
-			})))
-				Error("readdir failed: %d", status);
+			});
+			if (status != 0)
+				Error("readdir status: %d", status);
 		} else if (front == "readblock") {
 			if (pieces.size() != 2)
 				Error("Usage: readblock <byte offset>");
@@ -138,18 +137,27 @@ namespace Armaz {
 			if (pieces.size() != 2)
 				Error("Usage: create <path>");
 			CheckDriver();
-			const int status = driver->create(pieces[1].c_str(), 0666);
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
+			const int status = driver->create(path.c_str(), 0666);
 			if (status != 0)
-				Error("Status: %d", status);
-			else
-				Success("Created \e[1m%s\e[22m.", pieces[1].c_str());
+				Error("create status: %d", status);
+			Success("Created \e[1m%s\e[22m.", path.c_str());
+		} else if (front == "mkdir") {
+			if (pieces.size() != 2)
+				Error("Usage: mkdir <path>");
+			CheckDriver();
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
+			const int status = driver->mkdir(path.c_str(), 0666);
+			if (status != 0)
+				Error("mkdir status: %d", status);
+			Success("Created \e[1m%s\e[22m.", path.c_str());
 		} else if (front == "read") {
 			if (pieces.size() != 2)
 				Error("Usage: read <path>");
 			CheckDriver();
-			const char *path = pieces[1].c_str();
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
 			size_t size;
-			int status = driver->getsize(path, size);
+			int status = driver->getsize(path.c_str(), size);
 			if (status != 0)
 				Error("getsize status: %d", status);
 			if (size == 0) {
@@ -160,12 +168,12 @@ namespace Armaz {
 			char *buffer = new char[size];
 			if (!buffer)
 				Error("Couldn't allocate buffer.");
-			status = driver->read(path, buffer, size, 0);
+			status = driver->read(path.c_str(), buffer, size, 0);
 			if (status < 0) {
 				delete[] buffer;
 				Error("read status: %d", status);
 			}
-			Log::success("Read \e[1m%lu\e[22m bytes from \e[1m%s\e[22m:", size, path);
+			Log::success("Read \e[1m%lu\e[22m bytes from \e[1m%s\e[22m:", size, path.c_str());
 			for (size_t i = 0; i < size; ++i)
 				UART::write(buffer[i]);
 			UART::write('\n');
@@ -174,38 +182,58 @@ namespace Armaz {
 			if (pieces.size() < 2)
 				Error("Usage: write <path> [data]...");
 			CheckDriver();
-			const char *path = pieces[1].c_str();
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
 			std::string data;
 			for (size_t i = 2; i < pieces.size(); ++i) {
 				if (!data.empty())
 					data.push_back(' ');
 				data += pieces[i];
 			}
-			int status = driver->truncate(path, data.size());
+			int status = driver->truncate(path.c_str(), data.size());
 			if (status != 0)
 				Error("truncate status: %d", status);
 			Log::success("Truncated file to %lu byte%s.", data.size(), data.size() == 1? "" : "s");
-			status = driver->write(path, data.c_str(), data.size(), 0);
+			status = driver->write(path.c_str(), data.c_str(), data.size(), 0);
 			if (status < 0)
 				Error("write status: %d", status);
-			Success("Wrote \e[1m%lu\e[22m byte%s to \e[1m%s\e[22m.", data.size(), data.size() == 1? "" : "s", path);
+			Success("Wrote \e[1m%lu\e[22m byte%s to \e[1m%s\e[22m.", data.size(), data.size() == 1? "" : "s",
+			        path.c_str());
 		} else if (front == "rm") {
 			if (pieces.size() != 2)
 				Error("Usage: rm <path>");
 			CheckDriver();
-			int status = driver->unlink(pieces[1].c_str());
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
+			int status = driver->unlink(path.c_str());
 			if (status != 0)
 				Error("unlink status: %d", status);
-			Success("Successfully removed \e[1m%s\e[22m.", pieces[1].c_str());
+			Success("Successfully removed \e[1m%s\e[22m.", path.c_str());
 		} else if (front == "size") {
 			if (pieces.size() != 2)
 				Error("Usage: size <path>");
 			CheckDriver();
 			size_t size;
-			int status = driver->getsize(pieces[1].c_str(), size);
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
+			int status = driver->getsize(path.c_str(), size);
 			if (status != 0)
 				Error("getsize status: %d", status);
-			Success("Size of \e[1m%s\e[22m: \e[1m%lu\e[22m", pieces[1].c_str(), size);
+			Success("Size of \e[1m%s\e[22m: \e[1m%lu\e[22m", path.c_str(), size);
+		} else if (front == "path") {
+			if (pieces.size() != 2)
+				Error("Usage: path <path>");
+			Success("Expanded path: \e[1m%s\e[22m", FS::simplifyPath(cwd, pieces[1]).c_str());
+		} else if (front == "cd") {
+			if (pieces.size() != 2)
+				Error("Usage: cd <path>");
+			CheckDriver();
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
+			int status = driver->isdir(path.c_str());
+			if (status != 1)
+				Error("Not a directory: \e[1m%s\e[22m", path.c_str());
+			cwd = path;
+			Success("Changed directory to \e[1m%s\e[22m", cwd.c_str());
+		} else if (front == "pwd") {
+			CheckDriver();
+			Log::info("Current working directory: \e[1m%s\e[22m", cwd.c_str());
 		} else
 			Error("Unknown command: %s", front.c_str());
 

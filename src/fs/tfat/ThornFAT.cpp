@@ -406,6 +406,7 @@ namespace Armaz::ThornFAT {
 		ENTER;
 		DBGF(FILEREADH, "Reading file \"" BSR "\" of length " BULR " @ " BDR, file.name.str, file.length,
 			file.startBlock * superblock.blockSize);
+		Timers::waitMicroseconds(500'000);
 		// DBGF("readFile", "file.startBlock = " BDR ", superblock.blockSize = " BUR, file.startBlock,
 		// 	superblock.blockSize);
 		if (file.length == 0) {
