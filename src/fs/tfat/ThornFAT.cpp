@@ -2,12 +2,13 @@
 #include <string>
 #include <string.h>
 
+#include "Kernel.h"
+#include "Memory.h"
+#include "util.h"
 #include "aarch64/Timer.h"
 #include "fs/tfat/ThornFAT.h"
 #include "fs/tfat/Util.h"
 #include "lib/printf.h"
-#include "Memory.h"
-#include "util.h"
 
 namespace Armaz::ThornFAT {
 	Superblock::operator std::string() const {
@@ -1450,7 +1451,8 @@ namespace Armaz::ThornFAT {
 		return resize(found, offset, size);
 	}
 
-	int ThornFATDriver::ftruncate(const char *path, off_t size) {
+	int ThornFATDriver::ftruncate(const char *, off_t ) {
+		Kernel::panic("ThornFATDriver::ftruncate is unimplemented!");
 		return 0;
 	}
 
@@ -1509,7 +1511,8 @@ namespace Armaz::ThornFAT {
 		return 0;
 	}
 
-	int ThornFATDriver::open(const char *path) {
+	int ThornFATDriver::open(const char *) {
+		Kernel::panic("ThornFATDriver::open is unimplemented!");
 		return 0;
 	}
 
@@ -1696,7 +1699,8 @@ namespace Armaz::ThornFAT {
 		return 0;
 	}
 
-	int ThornFATDriver::getattr(const char *path, FS::FileStats &) {
+	int ThornFATDriver::getattr(const char *, FS::FileStats &) {
+		Kernel::panic("ThornFATDriver::getattr is unimplemented!");
 		return 0;
 	}
 

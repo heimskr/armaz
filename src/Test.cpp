@@ -140,9 +140,72 @@ namespace Armaz {
 			CheckDriver();
 			const int status = driver->create(pieces[1].c_str(), 0666);
 			if (status != 0)
-				Error("Status: %d\n", status);
+				Error("Status: %d", status);
 			else
 				Success("Created \e[1m%s\e[22m.", pieces[1].c_str());
+		} else if (front == "read") {
+			if (pieces.size() != 2)
+				Error("Usage: read <path>");
+			CheckDriver();
+			const char *path = pieces[1].c_str();
+			size_t size;
+			int status = driver->getsize(path, size);
+			if (status != 0)
+				Error("getsize status: %d", status);
+			if (size == 0) {
+				Log::warn("File is empty.");
+				return true;
+			}
+			Log::info("Size: %lu", size);
+			char *buffer = new char[size];
+			if (!buffer)
+				Error("Couldn't allocate buffer.");
+			status = driver->read(path, buffer, size, 0);
+			if (status < 0) {
+				delete[] buffer;
+				Error("read status: %d", status);
+			}
+			Log::success("Read \e[1m%lu\e[22m bytes from \e[1m%s\e[22m:", size, path);
+			for (size_t i = 0; i < size; ++i)
+				UART::write(buffer[i]);
+			UART::write('\n');
+			delete[] buffer;
+		} else if (front == "write") {
+			if (pieces.size() < 2)
+				Error("Usage: write <path> [data]...");
+			CheckDriver();
+			const char *path = pieces[1].c_str();
+			std::string data;
+			for (size_t i = 2; i < pieces.size(); ++i) {
+				if (!data.empty())
+					data.push_back(' ');
+				data += pieces[i];
+			}
+			int status = driver->truncate(path, data.size());
+			if (status != 0)
+				Error("truncate status: %d", status);
+			Log::success("Truncated file to %lu byte%s.", data.size(), data.size() == 1? "" : "s");
+			status = driver->write(path, data.c_str(), data.size(), 0);
+			if (status < 0)
+				Error("write status: %d", status);
+			Success("Wrote \e[1m%lu\e[22m byte%s to \e[1m%s\e[22m.", data.size(), data.size() == 1? "" : "s", path);
+		} else if (front == "rm") {
+			if (pieces.size() != 2)
+				Error("Usage: rm <path>");
+			CheckDriver();
+			int status = driver->unlink(pieces[1].c_str());
+			if (status != 0)
+				Error("unlink status: %d", status);
+			Success("Successfully removed \e[1m%s\e[22m.", pieces[1].c_str());
+		} else if (front == "size") {
+			if (pieces.size() != 2)
+				Error("Usage: size <path>");
+			CheckDriver();
+			size_t size;
+			int status = driver->getsize(pieces[1].c_str(), size);
+			if (status != 0)
+				Error("getsize status: %d", status);
+			Success("Size of \e[1m%s\e[22m: \e[1m%lu\e[22m", pieces[1].c_str(), size);
 		} else
 			Error("Unknown command: %s", front.c_str());
 
