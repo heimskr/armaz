@@ -252,4 +252,8 @@ namespace Armaz::UART {
 		spinlock.release();
 		return result;
 	}
+
+	void flush() {
+		while (MMIO::read(UART0_FR) & FR_BUSY_MASK);
+	}
 }

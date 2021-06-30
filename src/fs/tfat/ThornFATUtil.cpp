@@ -3,7 +3,8 @@
 #include "fs/tfat/ThornFAT.h"
 #include "fs/tfat/Util.h"
 
-int debug_enable = 1;
+int debug_enable = 0;
+int debug_disable = 1;
 int debug_disable_method = 0;
 int debug_disable_external = 0;
 char indentation[81];
@@ -32,9 +33,8 @@ namespace Armaz::ThornFAT::Util {
 		return {out};
 	}
 
-
 	std::optional<std::string> pathLast(const char *path) {
-		if (path == NULL)
+		if (path == nullptr)
 			return std::nullopt;
 
 		const size_t len = strlen(path);

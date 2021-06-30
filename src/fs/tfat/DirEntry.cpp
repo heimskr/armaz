@@ -13,6 +13,8 @@ namespace Armaz::ThornFAT {
 		startBlock = other.startBlock;
 		type = other.type;
 		modes = other.modes;
+		uid = other.uid;
+		gid = other.gid;
 	}
 
 	DirEntry & DirEntry::operator=(const DirEntry &other) {
@@ -22,6 +24,8 @@ namespace Armaz::ThornFAT {
 		startBlock = other.startBlock;
 		type = other.type;
 		modes = other.modes;
+		uid = other.uid;
+		gid = other.gid;
 		return *this;
 	}
 
@@ -32,12 +36,14 @@ namespace Armaz::ThornFAT {
 		startBlock = UNUSABLE;
 		type = FileType::File;
 		modes = 0;
+		uid = 0;
+		gid = 0;
 	}
 
 	DirEntry::operator std::string() const {
 		return "DirEntry[name=" + std::string(name.str) + ", length=" + std::to_string(length) + ", startBlock=" +
 			std::to_string(startBlock) + ", type=" + std::to_string((int) type) + ", modes=" + std::to_string(modes) +
-			"]";
+			", uid=" + std::to_string(uid) + ", gid=" + std::to_string(gid) + "]";
 	}
 
 	void DirEntry::print() const {

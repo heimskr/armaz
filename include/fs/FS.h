@@ -66,9 +66,9 @@ namespace Armaz::FS {
 			virtual int release(const char *path) = 0;
 			virtual int statfs(const char *, DriverStats &) = 0;
 			virtual int utimens(const char *path, const timespec &) = 0;
-			virtual int create(const char *path, mode_t mode) = 0;
+			virtual int create(const char *path, mode_t, uid_t, gid_t) = 0;
 			virtual int write(const char *path, const char *buffer, size_t size, off_t offset) = 0;
-			virtual int mkdir(const char *path, mode_t mode) = 0;
+			virtual int mkdir(const char *path, mode_t, uid_t, gid_t) = 0;
 			virtual int truncate(const char *path, off_t size) = 0;
 			virtual int ftruncate(const char *path, off_t size) = 0;
 			virtual int rmdir(const char *path) = 0;

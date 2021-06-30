@@ -100,7 +100,7 @@ namespace Armaz::ThornFAT {
 			int status = readDir(dir, entries, &offsets);
 			count = entries.size();
 			if (status < 0) {
-				WARN(FATFINDH, "Couldn't read directory. Status: " BDR " (%s)", status, STRERR(status));
+				WARN(FATFINDH, "Couldn't read directory. Status: " BDR, status);
 				FF_EXIT;
 				return status;
 			}
@@ -243,7 +243,7 @@ namespace Armaz::ThornFAT {
 
 		ssize_t status = partition->write(&dir, sizeof(DirEntry), offset);
 		if (status < 0) {
-			DBGF(WRENTRYH, "Writing failed: %s", strerror(status));
+			DBGF(WRENTRYH, "Writing failed: %ld", status);
 			return -status;
 		}
 		// IFERRNOXC(WARN(WRENTRYH, "write() failed " UDARR " " DSR, strerror(errno)));
@@ -290,7 +290,7 @@ namespace Armaz::ThornFAT {
 
 		ssize_t status = partition->read(&root, sizeof(DirEntry), start);
 		if (status < 0)
-			DBGF(GETROOTH, "Reading failed: %s", STRERR(status));
+			DBGF(GETROOTH, "Reading failed: %ld", status);
 
 		DBGF("getRoot", "Returning read root: %s", std::string(root).c_str());
 		EXIT;
@@ -338,7 +338,7 @@ namespace Armaz::ThornFAT {
 		int status = readFile(dir, raw, &byte_c);
 		if (status < 0) {
 			DR_EXIT;
-			DBGF("readDir", "readFile failed: " BSR, strerror(-status));
+			DBGF("readDir", "readFile failed: " BDR, status);
 			return status;
 		}
 
@@ -1279,7 +1279,7 @@ namespace Armaz::ThornFAT {
 		return 0;
 	}
 
-	int ThornFATDriver::create(const char *path, mode_t modes) {
+	int ThornFATDriver::create(const char *path, mode_t modes, uid_t uid, gid_t gid) {
 		HELLO(path);
 		DBGL;
 		DBGF(CREATEH, PMETHOD("create") BSTR DM " mode " BDR, path, modes);
@@ -1300,6 +1300,8 @@ namespace Armaz::ThornFAT {
 		SCHECK(CREATEH, "newfile failed");
 
 		newfile.modes = modes;
+		newfile.uid = uid;
+		newfile.gid = gid;
 		DBGF(CREATEH, "About to write new file at offset " BLR, offset);
 		writeEntry(newfile, offset);
 
@@ -1413,11 +1415,10 @@ namespace Armaz::ThornFAT {
 		return bytes_written;
 	}
 
-	int ThornFATDriver::mkdir(const char *path, mode_t mode) {
+	int ThornFATDriver::mkdir(const char *path, mode_t modes, uid_t uid, gid_t gid) {
 		HELLO(path);
-		UNUSED(mode);
 		DBGL;
-		DBGF(MKDIRH, PMETHOD("mkdir") BSTR DM " mode " BDR, path, mode);
+		DBGF(MKDIRH, PMETHOD("mkdir") BSTR DM " modes " BDR, path, modes);
 
 		const std::string simplified = FS::simplifyPath(path);
 
@@ -1430,6 +1431,10 @@ namespace Armaz::ThornFAT {
 		int status = newFile(simplified.c_str(), sizeof(DirEntry), FileType::Directory, nullptr, &subdir, &offset,
 		                     &parent, nullptr, false);
 		SCHECK(MKDIRH, "newFile failed");
+
+		subdir.modes = modes;
+		subdir.uid = uid;
+		subdir.gid = gid;
 
 		// Set the copy of the parent directory with its named changed to ".." as the first entry in the new directory.
 		updateName(parent, "..");

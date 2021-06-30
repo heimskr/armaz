@@ -58,7 +58,9 @@ namespace Armaz::ThornFAT {
 		block_t startBlock = -1;
 		FileType type = FileType::File;
 		mode_t modes = 0;
-		char padding[16] = {0}; // update if THORNFAT_PATH_MAX changes so that sizeof(DirEntry) is a multiple of 64
+		uid_t uid;
+		gid_t gid;
+		char padding[8] = {0}; // update if THORNFAT_PATH_MAX changes so that sizeof(DirEntry) is a multiple of 64
 
 		DirEntry() = default;
 		DirEntry(const Times &, size_t, FileType);
@@ -220,7 +222,6 @@ namespace Armaz::ThornFAT {
 			template <typename T>
 			ssize_t writeMany(T n, size_t count) {
 				ssize_t status;
-				// const size_t old_offset = writeOffset;
 				for (size_t i = 0; i < count; ++i) {
 					status = partition->write(&n, sizeof(T), writeOffset);
 					if (status < 0) {
@@ -229,7 +230,6 @@ namespace Armaz::ThornFAT {
 					}
 					writeOffset += sizeof(T);
 				}
-				// printf("[M] writeOffset: %lu -> %lu (%lu * %lu)\n", old_offset, writeOffset, sizeof(T), count);
 				return status;
 			}
 
@@ -240,7 +240,6 @@ namespace Armaz::ThornFAT {
 					printf("[ThornFATDriver::write] Writing failed: %ld\n", status);
 					return status;
 				}
-				// printf("[S] writeOffset: %lu -> %lu\n", writeOffset, writeOffset + sizeof(T));
 				writeOffset += sizeof(T);
 				return status;
 			}
@@ -260,9 +259,9 @@ namespace Armaz::ThornFAT {
 			virtual int release(const char *path) override;
 			virtual int statfs(const char *, FS::DriverStats &) override;
 			virtual int utimens(const char *path, const timespec &) override;
-			virtual int create(const char *path, mode_t modes) override;
+			virtual int create(const char *path, mode_t, uid_t, gid_t) override;
 			virtual int write(const char *path, const char *buffer, size_t size, off_t offset) override;
-			virtual int mkdir(const char *path, mode_t mode) override;
+			virtual int mkdir(const char *path, mode_t, uid_t, gid_t) override;
 			virtual int truncate(const char *path, off_t size) override;
 			virtual int ftruncate(const char *path, off_t size) override;
 			virtual int rmdir(const char *path) override;

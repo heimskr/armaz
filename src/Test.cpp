@@ -15,6 +15,8 @@ namespace Armaz {
 	static MBR mbr;
 	static bool mbr_read = false;
 	static std::string cwd = "/";
+	static uid_t uid = 0;
+	static gid_t gid = 0;
 	std::unique_ptr<Partition> partition;
 	std::unique_ptr<ThornFAT::ThornFATDriver> driver;
 
@@ -138,7 +140,7 @@ namespace Armaz {
 				Error("Usage: create <path>");
 			CheckDriver();
 			const std::string path = FS::simplifyPath(cwd, pieces[1]);
-			const int status = driver->create(path.c_str(), 0666);
+			const int status = driver->create(path.c_str(), 0666, uid, gid);
 			if (status != 0)
 				Error("create status: %d", status);
 			Success("Created \e[1m%s\e[22m.", path.c_str());
@@ -147,7 +149,7 @@ namespace Armaz {
 				Error("Usage: mkdir <path>");
 			CheckDriver();
 			const std::string path = FS::simplifyPath(cwd, pieces[1]);
-			const int status = driver->mkdir(path.c_str(), 0666);
+			const int status = driver->mkdir(path.c_str(), 0755, uid, gid);
 			if (status != 0)
 				Error("mkdir status: %d", status);
 			Success("Created \e[1m%s\e[22m.", path.c_str());
@@ -207,6 +209,15 @@ namespace Armaz {
 			if (status != 0)
 				Error("unlink status: %d", status);
 			Success("Successfully removed \e[1m%s\e[22m.", path.c_str());
+		} else if (front == "rmdir") {
+			if (pieces.size() != 2)
+				Error("Usage: rmdir <path>");
+			CheckDriver();
+			const std::string path = FS::simplifyPath(cwd, pieces[1]);
+			int status = driver->rmdir(path.c_str());
+			if (status != 0)
+				Error("rmdir status: %d", status);
+			Success("Successfully removed \e[1m%s\e[22m.", path.c_str());
 		} else if (front == "size") {
 			if (pieces.size() != 2)
 				Error("Usage: size <path>");
@@ -231,6 +242,28 @@ namespace Armaz {
 				Error("Not a directory: \e[1m%s\e[22m", path.c_str());
 			cwd = path;
 			Success("Changed directory to \e[1m%s\e[22m", cwd.c_str());
+		} else if (front == "uid") {
+			if (2 < pieces.size())
+				Error("Usage: uid [new uid]");
+			if (pieces.size() == 1) {
+				Log::info("uid: %u", uid);
+			} else {
+				unsigned long new_uid;
+				if (!Util::parseUlong(pieces[1], new_uid) || UINT_MAX < new_uid)
+					Error("Invalid uid");
+				uid = new_uid;
+			}
+		} else if (front == "gid") {
+			if (2 < pieces.size())
+				Error("Usage: gid [new gid]");
+			if (pieces.size() == 1) {
+				Log::info("gid: %u", gid);
+			} else {
+				unsigned long new_gid;
+				if (!Util::parseUlong(pieces[1], new_gid) || UINT_MAX < new_gid)
+					Error("Invalid gid");
+				gid = new_gid;
+			}
 		} else if (front == "pwd") {
 			CheckDriver();
 			Log::info("Current working directory: \e[1m%s\e[22m", cwd.c_str());

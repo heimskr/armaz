@@ -768,6 +768,7 @@ extern "C" {
 		char buffer[1];
 		const int ret = _vsnprintf(_out_char, buffer, (size_t) -1, format, va);
 		va_end(va);
+		Armaz::UART::flush();
 		return ret;
 	}
 
@@ -789,7 +790,9 @@ extern "C" {
 
 	int vprintf_(const char* format, va_list va) {
 		char buffer[1];
-		return _vsnprintf(_out_char, buffer, (size_t) -1, format, va);
+		const int out = _vsnprintf(_out_char, buffer, (size_t) -1, format, va);
+		Armaz::UART::flush();
+		return out;
 	}
 
 	int vsnprintf_(char* buffer, size_t count, const char* format, va_list va) {

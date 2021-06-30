@@ -5,16 +5,17 @@
 #include <optional>
 #include <string>
 
-#define DEBUG_EVERYTHING
-#define DEBUG_EXTRA
+// #define DEBUG_EVERYTHING
+// #define DEBUG_EXTRA
 // #define DEBUG_SETPTR
-#define DEBUG_FATFIND
+// #define DEBUG_FATFIND
 // #define DEBUG_DIRREAD
-#define DEBUG_NEWFILE
-#define DEBUG_UTIMENS
+// #define DEBUG_NEWFILE
+// #define DEBUG_UTIMENS
 #define INDENT_WIDTH 2
 
 extern int debug_enable;
+extern int debug_disable;
 extern int debug_disable_method;
 extern int debug_disable_external;
 extern char indentation[81];
@@ -153,7 +154,7 @@ namespace Armaz::ThornFAT::Util {
 #define LOGEND A_RESET "\n"
 #define CUSTOMH(s, c) A_RESET c s A_RESET A_DIM
 #define DIMH(s) CUSTOMH(s, A_DIM)
-#define DEBUG_ENABLED (debug_enable == 1 && debug_disable_method == 0 && debug_disable_external != 1)
+#define DEBUG_ENABLED (debug_enable == 1 && debug_disable == 0 && debug_disable_method == 0 && debug_disable_external != 1)
 #define FREE(p) { if (p != NULL) { free(p); p = NULL; } }
 #define DEBUG_DEBUG_ENABLED() printf("debug_enable == %d (1), debug_disable_method == %d (0), debug_disable_external " \
                                      "== %d (!1), logfile == %s (!NULL)\n -> %sabled\n", debug_enable,                 \
@@ -174,7 +175,7 @@ namespace Armaz::ThornFAT::Util {
 #define DBGH(s, s1, n)	dbgh(FILELINE, (s), (s1), (n))
 #define LOGPRINT(a...) { IFLOGDBG { printf(a); } }
 #define DBGF(s, f, a...) { LOGPRINT(LOGPAIR " " f "\n", LOGSET(s), a); }
-#define DIE(s, f, a...) { printf(MKPAIR(MKCTAG(A_RED), MKCHEADER(A_RED)) DIE_PREFIX f LOGEND, LOGSET(s), a); Timers::waitMicroseconds(10'000'000); Kernel::perish(); }
+#define DIE(s, f, a...) { printf(MKPAIR(MKCTAG(A_RED), MKCHEADER(A_RED)) DIE_PREFIX f LOGEND, LOGSET(s), a); Kernel::perish(); }
 #define DIES(s, m) { DIE(s, "%s", m); }
 #define CHECK(s, f, a...) { if (status) { EXIT; DIE(s, f, a); } }
 #define CHECKL0(s, f, a...) { if (status < 0) { EXIT; DIE(s, f, a); } }
@@ -247,7 +248,8 @@ namespace Armaz::ThornFAT::Util {
 #define IFSTATUS(b) { if (status < 0) { b; return status; } }
 // #define RETNERRX()   IFERRNO({ EXIT; })
 // #define IFERRNOXC(b) IFERRNOC({ b; EXIT; })
-#define CHECKW(s1, s2, n) WARN(s1, s2 ": " BDR " (%s)", n, STRERR(n))
+// #define CHECKW(s1, s2, n)  WARN(s1, s2 ": " BDR " (%s)", n, STRERR(n))
+#define CHECKW(s1, s2, n)  WARN(s1, s2 ": " BDR, n)
 #define SCHECK(s1, s2)     IFSTATUS({ DBG_ON(); CHECKW(s1, s2, status); })
 #define SCHECKX(s1, s2)    IFSTATUS({ DBG_ON(); CHECKW(s1, s2, status); EXIT; })
 #define SCHECKE(s1, s2)    IFSTATUS({ CHECKW(s1, s2, status); DBG_ON(); })
