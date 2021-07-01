@@ -78,26 +78,26 @@
 
 .global _start
 _start: // Normally entered from armstub8 in EL2 after boot
-	mrs	x0, CurrentEL // Check whether already in EL1t mode
-	cmp	x0, #4
-	beq	1f
+	mrs x0, CurrentEL // Check whether already in EL1t mode
+	cmp x0, #4
+	beq 1f
 
-	ldr	x0, =MEM_EXCEPTION_STACK // IRQ, FIQ and exception handler run in EL1h
-	msr	sp_el1, x0 // Initialize their stack
+	ldr x0, =MEM_EXCEPTION_STACK // IRQ, FIQ and exception handler run in EL1h
+	msr sp_el1, x0 // Initialize their stack
 
-	ldr	x0, =vectors // Initialize exception vector table for EL2
-	msr	vbar_el2, x0
+	ldr x0, =vectors // Initialize exception vector table for EL2
+	msr vbar_el2, x0
 
-//	ldr	x0, =SCTLR_VALUE_MMU_ENABLED
-//	msr	sctlr_el1, x0
+//	ldr x0, =SCTLR_VALUE_MMU_ENABLED
+//	msr sctlr_el1, x0
 
-	ldr	x0, =HCR_VALUE
-	msr	hcr_el2, x0
+	ldr x0, =HCR_VALUE
+	msr hcr_el2, x0
 
 	armv8_switch_to_el1_m x0, x1
 
-1:	ldr	x0, =MEM_KERNEL_STACK // Main thread runs in EL1t and uses sp_el0
-	mov	sp, x0 // Initialize its stack
+1:	ldr x0, =MEM_KERNEL_STACK // Main thread runs in EL1t and uses sp_el0
+	mov sp, x0 // Initialize its stack
 
 2:	// Clean the BSS section
 	ldr  x1, =__bss_start // Start address
@@ -107,8 +107,8 @@ _start: // Normally entered from armstub8 in EL2 after boot
 	sub  x2, x2, #1
 	cbnz x2, 3b           // Loop if non-zero
 
-	ldr	x0, =vectors // Initialize exception vector table
-	msr	vbar_el1, x0
+	ldr x0, =vectors // Initialize exception vector table
+	msr vbar_el1, x0
 
 4:	b main
 5:	wfe
@@ -119,29 +119,29 @@ _start: // Normally entered from armstub8 in EL2 after boot
 .global _start_secondary
 _start_secondary: // Normally entered from armstub8 in EL2 after boot
 
-	mrs	x2, mpidr_el1    // Read affinity
-	and	x2, x2, #CORES-1 // Get CPU ID
+	mrs x2, mpidr_el1    // Read affinity
+	and x2, x2, #CORES-1 // Get CPU ID
 
-	mrs	x0, CurrentEL // Check whether already in EL1t mode
-	cmp	x0, #4
-	beq	1f
+	mrs x0, CurrentEL // Check whether already in EL1t mode
+	cmp x0, #4
+	beq 1f
 
-	mov	x1, #EXCEPTION_STACK_SIZE // Calculate exception stack offset for core
-	mul	x1, x1, x2
-	ldr	x0, =MEM_EXCEPTION_STACK // IRQ, FIQ and exception handler run in EL1h
-	add	x0, x0, x1
-	msr	sp_el1, x0 // Initialize their stack
+	mov x1, #EXCEPTION_STACK_SIZE // Calculate exception stack offset for core
+	mul x1, x1, x2
+	ldr x0, =MEM_EXCEPTION_STACK // IRQ, FIQ and exception handler run in EL1h
+	add x0, x0, x1
+	msr sp_el1, x0 // Initialize their stack
 
 	armv8_switch_to_el1_m x0, x1
 
-1:	mov	x1, #KERNEL_STACK_SIZE // Calculate kernel stack offset for core
-	mul	x1, x1, x2
-	ldr	x0, =MEM_KERNEL_STACK // Main thread runs in EL1t and uses sp_el0
-	add	x0, x0, x1
-	mov	sp, x0 // Initialize its stack
+1:	mov x1, #KERNEL_STACK_SIZE // Calculate kernel stack offset for core
+	mul x1, x1, x2
+	ldr x0, =MEM_KERNEL_STACK // Main thread runs in EL1t and uses sp_el0
+	add x0, x0, x1
+	mov sp, x0 // Initialize its stack
 
-	ldr	x0, =vectors // Initialize exception vector table
-	msr	vbar_el1, x0
+	ldr x0, =vectors // Initialize exception vector table
+	msr vbar_el1, x0
 
 	b main_secondary
 
