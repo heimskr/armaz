@@ -16,7 +16,11 @@ namespace Armaz::MMIO {
 				case 1:  base = 0x20000000; break;
 				case 2:  base = 0x3f000000; break;
 				case 3:  base = 0x3f000000; break;
+#ifdef HIGH_PERIPHERAL_MODE
+				case 4:  base = 0x47e000000; break;
+#else
 				case 4:  base = 0xfe000000; break;
+#endif
 				default: base = 0x20000000; break;
 			}
 		}

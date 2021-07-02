@@ -1,11 +1,16 @@
 // Credit: https://github.com/s-matyukevich/raspberry-pi-os/blob/master/src/lesson03/src/entry.S
 
+#include "Config.h"
 #include "aarch64/Entry.h"
 
 // #define SAVE_VFP_REGS_ON_IRQ
 // #define SAVE_VFP_REGS_ON_FIQ
 
+#ifdef HIGH_PERIPHERAL_MODE
+#define ARM_IC_FIQ_CONTROL 0x47e00b20c
+#else
 #define ARM_IC_FIQ_CONTROL 0xfe00b20c
+#endif
 
 
 
@@ -309,8 +314,8 @@ _ZN5Armaz10Interrupts7FIQStubEv:
 	eret
 
 2:	ldr	x1, =ARM_IC_FIQ_CONTROL // disable FIQ (if handler is not set)
-	mov	w0, #0
-	str	w0, [x1]
+	mov	x0, #0
+	str	x0, [x1]
 	b 1b
 
 

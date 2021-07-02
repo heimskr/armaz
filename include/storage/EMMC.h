@@ -91,7 +91,7 @@ namespace Armaz {
 			size_t doWrite(uint8_t *buf, size_t buf_size, uint64_t block);
 
 #ifndef USE_SDHOST
-			int timeoutWait(unsigned reg, unsigned mask, int value, unsigned usec);
+			int timeoutWait(ptrdiff_t reg, unsigned mask, int value, unsigned usec);
 #endif
 
 			void usDelay(unsigned usec);

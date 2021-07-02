@@ -106,19 +106,19 @@
 #define EMMC_ARG2           (EMMC_BASE + 0x00)
 #define EMMC_BLKSIZECNT     (EMMC_BASE + 0x04)
 #define EMMC_ARG1           (EMMC_BASE + 0x08)
-#define EMMC_CMDTM          (EMMC_BASE + 0x0C)
+#define EMMC_CMDTM          (EMMC_BASE + 0x0c)
 #define EMMC_RESP0          (EMMC_BASE + 0x10)
 #define EMMC_RESP1          (EMMC_BASE + 0x14)
 #define EMMC_RESP2          (EMMC_BASE + 0x18)
-#define EMMC_RESP3          (EMMC_BASE + 0x1C)
+#define EMMC_RESP3          (EMMC_BASE + 0x1c)
 #define EMMC_DATA           (EMMC_BASE + 0x20)
 #define EMMC_STATUS         (EMMC_BASE + 0x24)
 #define EMMC_CONTROL0       (EMMC_BASE + 0x28)
-#define EMMC_CONTROL1       (EMMC_BASE + 0x2C)
+#define EMMC_CONTROL1       (EMMC_BASE + 0x2c)
 #define EMMC_INTERRUPT      (EMMC_BASE + 0x30)
 #define EMMC_IRPT_MASK      (EMMC_BASE + 0x34)
 #define EMMC_IRPT_EN        (EMMC_BASE + 0x38)
-#define EMMC_CONTROL2       (EMMC_BASE + 0x3C)
+#define EMMC_CONTROL2       (EMMC_BASE + 0x3c)
 #define EMMC_CAPABILITIES_0 (EMMC_BASE + 0x40)
 #define EMMC_CAPABILITIES_1 (EMMC_BASE + 0x44)
 #define EMMC_FORCE_IRPT     (EMMC_BASE + 0x50)
@@ -127,10 +127,10 @@
 #define EMMC_EXRDFIFO_CFG   (EMMC_BASE + 0x80)
 #define EMMC_EXRDFIFO_EN    (EMMC_BASE + 0x84)
 #define EMMC_TUNE_STEP      (EMMC_BASE + 0x88)
-#define EMMC_TUNE_STEPS_STD (EMMC_BASE + 0x8C)
+#define EMMC_TUNE_STEPS_STD (EMMC_BASE + 0x8c)
 #define EMMC_TUNE_STEPS_DDR (EMMC_BASE + 0x90)
-#define EMMC_SPI_INT_SPT    (EMMC_BASE + 0xF0)
-#define EMMC_SLOTISR_VER    (EMMC_BASE + 0xFC)
+#define EMMC_SPI_INT_SPT    (EMMC_BASE + 0xf0)
+#define EMMC_SLOTISR_VER    (EMMC_BASE + 0xfc)
 
 #endif
 
@@ -212,7 +212,7 @@
 
 #define SD_CMD_RESERVED(a) 0xffffffff
 
-#define FAIL             (lastCmdSuccess == 0)
+#define FAIL (lastCmdSuccess == 0)
 
 #ifndef USE_SDHOST
 #define TIMEOUT       (FAIL && (lastError == 0))
@@ -2029,7 +2029,7 @@ namespace Armaz {
 	}
 
 #ifndef USE_SDHOST
-	int EMMCDevice::timeoutWait(unsigned reg, unsigned mask, int value, unsigned usec) {
+	int EMMCDevice::timeoutWait(ptrdiff_t reg, unsigned mask, int value, unsigned usec) {
 		unsigned start_ticks = Timers::getClockTicks();
 		unsigned timeout_ticks = usec * (Timers::CLOCKHZ / 1'000'000);
 

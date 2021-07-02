@@ -19,7 +19,13 @@
 //
 #pragma once
 
+#include "Config.h"
+
+#ifdef HIGH_PERIPHERAL_MODE
+#define ARM_IO_BASE 0x47e000000ul
+#else
 #define ARM_IO_BASE 0xfe000000ul
+#endif
 
 // External Mass Media Controller 2 (SD Card)
 #define ARM_EMMC2_BASE (ARM_IO_BASE + 0x340000)
