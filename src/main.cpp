@@ -112,11 +112,14 @@ extern "C" void main() {
 
 	input.reserve(128);
 
+	UART::write("\e[31m#\e[39m ");
+
 	for (;;) {
 		while (UART::read(&ch, 1) == 1) {
 			if (ch == '\n') {
 				UART::write('\n');
 				test(input);
+				UART::write("\e[31m#\e[39m ");
 				input.clear();
 			} else if (ch == 127) {
 				if (!input.empty()) {

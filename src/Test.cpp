@@ -1,3 +1,4 @@
+#include <functional>
 #include <memory>
 
 #include "Log.h"
@@ -267,6 +268,53 @@ namespace Armaz {
 		} else if (front == "pwd") {
 			CheckDriver();
 			Log::info("Current working directory: \e[1m%s\e[22m", cwd.c_str());
+		} else if (front == "R") {
+			if (pieces.size() != 2 && pieces.size() != 3)
+				Error("Usage: R <address> [flag]");
+			uintptr_t address;
+			if (!Util::parseUlong(pieces[1], address, 16))
+				Error("Invalid address");
+			if (pieces.size() == 3) {
+				if (pieces[2] == "b" || pieces[2] == "8")
+					Success("*0x%llx = 0x%02x", address, *(volatile uint8_t *) address);
+				else if (pieces[2] == "s" || pieces[2] == "16")
+					Success("*0x%llx = 0x%04x", address, *(volatile uint16_t *) address);
+				else if (pieces[2] == "w" || pieces[2] == "32")
+					Success("*0x%llx = 0x%08x", address, *(volatile uint32_t *) address);
+				else if (pieces[2] == "l" || pieces[2] == "64")
+					Success("*0x%llx = 0x%016llx", address, *(volatile uint64_t *) address);
+				else
+					Error("Invalid flag: %s", pieces[2].c_str());
+			} else
+				Success("*0x%llx = 0x%02x", address, *(volatile uint8_t *) address);
+		} else if (front == "W") {
+			if (pieces.size() != 3 && pieces.size() != 4)
+				Error("Usage: W <address> <value> [flag]");
+			uintptr_t address;
+			uint64_t value;
+			if (!Util::parseUlong(pieces[1], address, 16))
+				Error("Invalid address");
+			if (!Util::parseUlong(pieces[2], value, 16))
+				Error("Invalid value");
+			if (pieces.size() == 4) {
+				if (pieces[3] == "b" || pieces[3] == "8") {
+					*(volatile uint8_t *) address = value & 0xff;
+					Success("Wrote 0x%02x to 0x%llx", value & 0xff, address);
+				} else if (pieces[3] == "s" || pieces[3] == "16") {
+					*(volatile uint16_t *) address = value & 0xffff;
+					Success("Wrote 0x%04x to 0x%llx", value & 0xffff, address);
+				} else if (pieces[3] == "w" || pieces[3] == "32") {
+					*(volatile uint32_t *) address = value & 0xffffffff;
+					Success("Wrote 0x%08x to 0x%llx", value & 0xffffffff, address);
+				} else if (pieces[3] == "l" || pieces[3] == "64") {
+					*(volatile uint64_t *) address = value;
+					Success("Wrote 0x%llx to 0x%llx", value, address);
+				} else
+					Error("Invalid flag: %s", pieces[3].c_str());
+			} else {
+				*(volatile uint8_t *) address = value & 0xff;
+				Success("Wrote 0x%02x to 0x%llx", value & 0xff, address);
+			}
 		} else
 			Error("Unknown command: %s", front.c_str());
 

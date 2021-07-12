@@ -88,9 +88,6 @@ _start: // Normally entered from armstub8 in EL2 after boot
 	ldr x0, =vectors // Initialize exception vector table for EL2
 	msr vbar_el2, x0
 
-//	ldr x0, =SCTLR_VALUE_MMU_ENABLED
-//	msr sctlr_el1, x0
-
 	ldr x0, =HCR_VALUE
 	msr hcr_el2, x0
 

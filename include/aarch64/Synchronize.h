@@ -21,11 +21,12 @@ namespace Armaz {
 	constexpr uint32_t L2_CACHE_LINE_LENGTH =   64;
 	constexpr uint32_t L2_SETWAY_SET_SHIFT  =    6; // Log2(L2_CACHE_LINE_LENGTH)
 
-#define dataMemBarrier() asm volatile("dmb sy" ::: "memory")
+#define dataMemBarrier()  asm volatile("dmb sy" ::: "memory")
 #define dataSyncBarrier() asm volatile("dsb sy" ::: "memory")
 	void cleanDataCache();
+	void invalidateDataCache();
 #define invalidateInstructionCache() asm volatile("ic iallu" ::: "memory")
-#define instructionSyncBarrier() asm volatile("isb" ::: "memory")
+#define instructionSyncBarrier()     asm volatile("isb"      ::: "memory")
 	void syncDataAndInstructionCache();
 
 	void enterCritical(Level);

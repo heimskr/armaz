@@ -45,6 +45,26 @@ namespace Armaz {
 		dataSyncBarrier();
 	}
 
+
+	void invalidateDataCache() {
+		// invalidate L1 data cache
+		for (unsigned set = 0; set < L1_DATA_CACHE_SETS; ++set)
+			for (unsigned way = 0; way < L1_DATA_CACHE_WAYS; ++way) {
+				uint64_t set_way_level = (way << L1_SETWAY_WAY_SHIFT) | (set << L1_SETWAY_SET_SHIFT);
+				asm volatile("dc isw, %0" :: "r"(set_way_level) : "memory");
+			}
+
+		// invalidate L2 unified cache
+		for (unsigned set = 0; set < L2_CACHE_SETS; ++set)
+			for (unsigned way = 0; way < L2_CACHE_WAYS; ++way) {
+				uint64_t set_way_level = (way << L2_SETWAY_WAY_SHIFT) | (set << L2_SETWAY_SET_SHIFT)
+					                   | (1 << SETWAY_LEVEL_SHIFT);
+				asm volatile("dc isw, %0" :: "r"(set_way_level) : "memory");
+			}
+
+		dataSyncBarrier();
+	}
+
 	void syncDataAndInstructionCache() {
 		cleanDataCache();
 
